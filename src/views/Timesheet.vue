@@ -261,7 +261,7 @@ const importExcel = async () => {
   const requestOptions = {
     method: "POST",
     headers: {
-      Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZjhhMGYyMzk3YjJlM2M1YWZmZjVjZCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc0NDYwMTAyNCwiZXhwIjoxNzQ0Njg3NDI0fQ.j_e7cqxFI7_W1M0GtAhAdTHPHSMOjdcBJEdq30neEoA",
+      Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZmUwYWJkYzNhZmYzMzNkNTk2MGI1YyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc0NDcwMjE1NywiZXhwIjoxNzQ0Nzg4NTU3fQ.BIItleqIfyRHnR5Pe3KfjvbkwSDjL5jkKJHs89jNiJc",
     },
     body: formdata,
   };
