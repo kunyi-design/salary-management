@@ -41,8 +41,8 @@
         </TableBody>
       </Table>
     </div>
-    <!-- <input type="file" ref="fileInput" />
-    <button @click="importExcel">Import</button> -->
+    <input type="file" ref="fileInput" />
+    <button @click="importExcel">Import</button>
   </section>
 </template>
 
@@ -81,7 +81,7 @@ const columnVisibility = ref({})
 const rowSelection = ref({})
 const expanded = ref({})
 const data = ref([])
-// const fileInput = ref(null)
+const fileInput = ref(null)
 const dateColumns = computed(() => {
   if (!data.value.length) return columns;
 
@@ -249,31 +249,31 @@ const getTimeSheet = async () => {
     toast.error(e.message)
   }
 }
-// const importExcel = async () => {
-//   const file = fileInput.value?.files?.[0]
-//   if (!file) return console.warn("Chưa chọn file!")
+const importExcel = async () => {
+  const file = fileInput.value?.files?.[0]
+  if (!file) return console.warn("Chưa chọn file!")
 
-//   const formdata = new FormData();
-//   formdata.append("month", "5");
-//   formdata.append("year", "2025");
-//   formdata.append("file", file);
+  const formdata = new FormData();
+  formdata.append("month", "5");
+  formdata.append("year", "2025");
+  formdata.append("file", file);
 
-//   const requestOptions = {
-//     method: "POST",
-//     headers: {
-//       Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZjhhMGYyMzk3YjJlM2M1YWZmZjVjZCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc0NDYwMTAyNCwiZXhwIjoxNzQ0Njg3NDI0fQ.j_e7cqxFI7_W1M0GtAhAdTHPHSMOjdcBJEdq30neEoA",
-//     },
-//     body: formdata,
-//   };
+  const requestOptions = {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZjhhMGYyMzk3YjJlM2M1YWZmZjVjZCIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc0NDYwMTAyNCwiZXhwIjoxNzQ0Njg3NDI0fQ.j_e7cqxFI7_W1M0GtAhAdTHPHSMOjdcBJEdq30neEoA",
+    },
+    body: formdata,
+  };
 
-//   try {
-//     const response = await fetch("http://localhost:5000/api/attendance/import", requestOptions);
-//     const result = await response.json();
-//     console.log("Kết quả import:", result);
-//   } catch (error) {
-//     console.error("Lỗi import:", error);
-//   }
-// };
+  try {
+    const response = await fetch("https://api-qlns.onrender.com/api/attendance/import", requestOptions);
+    const result = await response.json();
+    console.log("Kết quả import:", result);
+  } catch (error) {
+    console.error("Lỗi import:", error);
+  }
+};
 onMounted(() => {
   getTimeSheet()
   store.dispatch('app/setBreadcrumb', {
