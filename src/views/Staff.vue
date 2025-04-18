@@ -1,277 +1,285 @@
 <template>
   <section class="px-4">
-    <div class="mb-20">
-      <form class="space-y-6" @submit.prevent="onSubmit">
-        <div class="grid grid-cols-12 gap-5">
-          <div class="col-span-3">
-            <FormField v-slot="{ componentField }" name="fullName" :validate-on-blur="!isFieldDirty">
-              <FormItem>
-                <FormLabel>Tên nhân viên</FormLabel>
-                <FormControl>
-                  <Input type="text" placeholder="Ngô Thị Thu Hiền" v-bind="componentField" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            </FormField>
-          </div>
-          <div class="col-span-3">
-            <FormField name="dateOfBirth">
-              <FormItem>
-                <FormLabel>Ngày sinh</FormLabel>
-                <FormControl>
-                  <Popover>
-                    <PopoverTrigger as-child>
+    <Accordion type="single" class="w-full border mb-16 px-5 rounded-sm" collapsible :default-value="''">
+      <AccordionItem :key="'addStaff'" :value="'addStaff'">
+        <AccordionTrigger class=" cursor-pointer text-blue-500">Thêm nhân viên</AccordionTrigger>
+        <AccordionContent>
+          <div class="">
+            <form class="space-y-6" @submit.prevent="onSubmit">
+              <div class="grid grid-cols-12 gap-5">
+                <div class="col-span-3">
+                  <FormField v-slot="{ componentField }" name="fullName" :validate-on-blur="!isFieldDirty">
+                    <FormItem>
+                      <FormLabel>Tên nhân viên</FormLabel>
                       <FormControl>
-                        <Button variant="outline" :class="cn(
-                          'w-full ps-3 text-start font-normal',
-                          !value && 'text-muted-foreground',
-                        )">
-                          <span>{{ value ? df.format(toDate(value)) : "Chọn ngày sinh" }}</span>
-                          <CalendarIcon class="ms-auto h-4 w-4 opacity-50" />
-                        </Button>
-                        <input hidden>
+                        <Input type="text" placeholder="Ngô Thị Thu Hiền" v-bind="componentField" />
                       </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent class="w-auto p-0">
-                      <Calendar v-model="value" calendar-label="Date of birth" initial-focus
-                        :min-value="new CalendarDate(1900, 1, 1)" :max-value="today(getLocalTimeZone())"
-                        @update:model-value="(v) => {
-                          if (v) {
-                            setFieldValue('dateOfBirth', v.toString())
-                          }
-                          else {
-                            setFieldValue('dateOfBirth', undefined)
-                          }
-                        }" />
-                    </PopoverContent>
-                  </Popover>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            </FormField>
-          </div>
-          <div class="col-span-3">
-            <FormField v-slot="{ componentField }" name="email" :validate-on-blur="!isFieldDirty">
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input type="text" placeholder="hienntt@gmail.com" v-bind="componentField" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            </FormField>
-          </div>
-          <div class="col-span-3">
-            <FormField v-slot="{ componentField }" name="phone" :validate-on-blur="!isFieldDirty">
-              <FormItem>
-                <FormLabel>Số điện thoại</FormLabel>
-                <FormControl>
-                  <Input type="text" placeholder="0915818189" v-bind="componentField" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            </FormField>
-          </div>
-          <div class="col-span-3">
-            <FormField v-slot="{ componentField }" name="cmnd" :validate-on-blur="!isFieldDirty">
-              <FormItem>
-                <FormLabel>Số CMND</FormLabel>
-                <FormControl>
-                  <Input type="text" placeholder="Nhập số CMND" v-bind="componentField" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            </FormField>
-          </div>
-          <div class="col-span-3">
-            <FormField name="dateOfIssue">
-              <FormItem>
-                <FormLabel>Ngày cấp</FormLabel>
-                <FormControl>
-                  <Popover>
-                    <PopoverTrigger as-child>
+                      <FormMessage />
+                    </FormItem>
+                  </FormField>
+                </div>
+                <div class="col-span-3">
+                  <FormField name="dateOfBirth">
+                    <FormItem>
+                      <FormLabel>Ngày sinh</FormLabel>
                       <FormControl>
-                        <Button variant="outline" :class="cn(
-                          'w-full ps-3 text-start font-normal',
-                          !dateOfIssueValue && 'text-muted-foreground',
-                        )">
-                          <span>{{ dateOfIssueValue ? df.format(toDate(dateOfIssueValue)) : "Chọn ngày cấp" }}</span>
-                          <CalendarIcon class="ms-auto h-4 w-4 opacity-50" />
-                        </Button>
-                        <input hidden>
+                        <Popover>
+                          <PopoverTrigger as-child>
+                            <FormControl>
+                              <Button variant="outline" :class="cn(
+                                'w-full ps-3 text-start font-normal',
+                                !value && 'text-muted-foreground',
+                              )">
+                                <span>{{ value ? df.format(toDate(value)) : "Chọn ngày sinh" }}</span>
+                                <CalendarIcon class="ms-auto h-4 w-4 opacity-50" />
+                              </Button>
+                              <input hidden>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent class="w-auto p-0">
+                            <Calendar v-model="value" calendar-label="Date of birth" initial-focus
+                              :min-value="new CalendarDate(1900, 1, 1)" :max-value="today(getLocalTimeZone())"
+                              @update:model-value="(v) => {
+                                if (v) {
+                                  setFieldValue('dateOfBirth', v.toString())
+                                }
+                                else {
+                                  setFieldValue('dateOfBirth', undefined)
+                                }
+                              }" />
+                          </PopoverContent>
+                        </Popover>
                       </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent class="w-auto p-0">
-                      <Calendar v-model="dateOfIssueValue" calendar-label="Date of birth" initial-focus
-                        :min-value="new CalendarDate(1900, 1, 1)" :max-value="today(getLocalTimeZone())"
-                        @update:model-value="(v) => {
-                          if (v) {
-                            setFieldValue('dateOfIssue', v.toString())
-                          }
-                          else {
-                            setFieldValue('dateOfIssue', undefined)
-                          }
-                        }" />
-                    </PopoverContent>
-                  </Popover>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            </FormField>
+                      <FormMessage />
+                    </FormItem>
+                  </FormField>
+                </div>
+                <div class="col-span-3">
+                  <FormField v-slot="{ componentField }" name="email" :validate-on-blur="!isFieldDirty">
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input type="text" placeholder="hienntt@gmail.com" v-bind="componentField" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormField>
+                </div>
+                <div class="col-span-3">
+                  <FormField v-slot="{ componentField }" name="phone" :validate-on-blur="!isFieldDirty">
+                    <FormItem>
+                      <FormLabel>Số điện thoại</FormLabel>
+                      <FormControl>
+                        <Input type="text" placeholder="0915818189" v-bind="componentField" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormField>
+                </div>
+                <div class="col-span-3">
+                  <FormField v-slot="{ componentField }" name="cmnd" :validate-on-blur="!isFieldDirty">
+                    <FormItem>
+                      <FormLabel>Số CMND</FormLabel>
+                      <FormControl>
+                        <Input type="text" placeholder="Nhập số CMND" v-bind="componentField" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormField>
+                </div>
+                <div class="col-span-3">
+                  <FormField name="dateOfIssue">
+                    <FormItem>
+                      <FormLabel>Ngày cấp</FormLabel>
+                      <FormControl>
+                        <Popover>
+                          <PopoverTrigger as-child>
+                            <FormControl>
+                              <Button variant="outline" :class="cn(
+                                'w-full ps-3 text-start font-normal',
+                                !dateOfIssueValue && 'text-muted-foreground',
+                              )">
+                                <span>{{ dateOfIssueValue ? df.format(toDate(dateOfIssueValue)) : "Chọn ngày cấp"
+                                }}</span>
+                                <CalendarIcon class="ms-auto h-4 w-4 opacity-50" />
+                              </Button>
+                              <input hidden>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent class="w-auto p-0">
+                            <Calendar v-model="dateOfIssueValue" calendar-label="Date of birth" initial-focus
+                              :min-value="new CalendarDate(1900, 1, 1)" :max-value="today(getLocalTimeZone())"
+                              @update:model-value="(v) => {
+                                if (v) {
+                                  setFieldValue('dateOfIssue', v.toString())
+                                }
+                                else {
+                                  setFieldValue('dateOfIssue', undefined)
+                                }
+                              }" />
+                          </PopoverContent>
+                        </Popover>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormField>
+                </div>
+                <div class="col-span-3">
+                  <FormField v-slot="{ componentField }" name="placeOfIssue" :validate-on-blur="!isFieldDirty">
+                    <FormItem>
+                      <FormLabel>Nơi cấp</FormLabel>
+                      <FormControl>
+                        <Input type="text" placeholder="Nhập nơi cấp" v-bind="componentField" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormField>
+                </div>
+              </div>
+              <div class="grid grid-cols-12 gap-5">
+                <div class="col-span-3">
+                  <FormField name="department">
+                    <FormItem>
+                      <FormLabel>Ban / Trung tâm</FormLabel>
+                      <FormControl>
+                        <Select v-model="departmentValue">
+                          <SelectTrigger class="w-full">
+                            <SelectValue placeholder="Chọn ban / phòng ban" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectItem v-for="item in departments" :key="item.code" :value="item.code">
+                                {{ item.label }}
+                              </SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormField>
+                </div>
+                <div class="col-span-3">
+                  <FormField name="position">
+                    <FormItem>
+                      <FormLabel>Vị trí công việc</FormLabel>
+                      <FormControl>
+                        <Select v-model="positionValue">
+                          <SelectTrigger class="w-full">
+                            <SelectValue placeholder="Chọn vị trí công việc" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectItem v-for="item in positions" :key="item.code" :value="item.code">
+                                {{ item.label }}
+                              </SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormField>
+                </div>
+                <div class="col-span-6">
+                  <FormField v-slot="{ componentField }" name="company">
+                    <FormItem>
+                      <FormLabel>Công ty</FormLabel>
+                      <FormControl>
+                        <Input type="text" v-bind="componentField" :value="'CÔNG TY CỔ PHẦN DEHA VIỆT NAM'" disabled />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormField>
+                </div>
+                <div class="col-span-3">
+                  <FormField v-slot="{ componentField }" name="bankAccount" :validate-on-blur="!isFieldDirty">
+                    <FormItem>
+                      <FormLabel>Số tài khoản</FormLabel>
+                      <FormControl>
+                        <Input type="text" placeholder="Nhập số tài khoản" v-bind="componentField" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormField>
+                </div>
+                <div class="col-span-3">
+                  <FormField v-slot="{ componentField }" name="accountName" :validate-on-blur="!isFieldDirty">
+                    <FormItem>
+                      <FormLabel>Tên tài khoản</FormLabel>
+                      <FormControl>
+                        <Input type="text" placeholder="Nhập tên tài khoản" v-bind="componentField" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormField>
+                </div>
+                <div class="col-span-3">
+                  <FormField name="bankName">
+                    <FormItem>
+                      <FormLabel>Ngân hàng</FormLabel>
+                      <FormControl>
+                        <Select v-model="bankNameValue">
+                          <SelectTrigger class="w-full">
+                            <SelectValue placeholder="Chọn ngân hàng" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectItem v-for="item in bankNames" :key="item.code" :value="item.code">
+                                {{ item.label }}
+                              </SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormField>
+                </div>
+                <div class="col-span-3">
+                  <FormField v-slot="{ componentField }" name="taxCode" :validate-on-blur="!isFieldDirty">
+                    <FormItem>
+                      <FormLabel>Mã số thuế</FormLabel>
+                      <FormControl>
+                        <Input type="text" placeholder="Nhập mã số thuế" v-bind="componentField" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormField>
+                </div>
+                <div class="col-span-3">
+                  <FormField v-slot="{ componentField }" name="permanentAddress" :validate-on-blur="!isFieldDirty">
+                    <FormItem>
+                      <FormLabel>Địa chỉ thường trú</FormLabel>
+                      <FormControl>
+                        <Input type="text" placeholder="Nhập địa chỉ thường trú" v-bind="componentField" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormField>
+                </div>
+                <div class="col-span-3">
+                  <FormField v-slot="{ componentField }" name="temporaryAddress" :validate-on-blur="!isFieldDirty">
+                    <FormItem>
+                      <FormLabel>Địa chỉ tạm trú</FormLabel>
+                      <FormControl>
+                        <Input type="text" placeholder="Nhập địa chỉ tạm trú" v-bind="componentField" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </FormField>
+                </div>
+              </div>
+              <div class="flex justify-end">
+                <Button type="submit" variant="primary">
+                  Thêm nhân viên
+                </Button>
+              </div>
+            </form>
           </div>
-          <div class="col-span-3">
-            <FormField v-slot="{ componentField }" name="placeOfIssue" :validate-on-blur="!isFieldDirty">
-              <FormItem>
-                <FormLabel>Nơi cấp</FormLabel>
-                <FormControl>
-                  <Input type="text" placeholder="Nhập nơi cấp" v-bind="componentField" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            </FormField>
-          </div>
-        </div>
-        <div class="grid grid-cols-12 gap-5">
-          <div class="col-span-3">
-            <FormField name="department">
-              <FormItem>
-                <FormLabel>Ban / Trung tâm</FormLabel>
-                <FormControl>
-                  <Select v-model="departmentValue">
-                    <SelectTrigger class="w-full">
-                      <SelectValue placeholder="Chọn ban / phòng ban" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem v-for="item in departments" :key="item.code" :value="item.code">
-                          {{ item.label }}
-                        </SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            </FormField>
-          </div>
-          <div class="col-span-3">
-            <FormField name="position">
-              <FormItem>
-                <FormLabel>Vị trí công việc</FormLabel>
-                <FormControl>
-                  <Select v-model="positionValue">
-                    <SelectTrigger class="w-full">
-                      <SelectValue placeholder="Chọn vị trí công việc" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem v-for="item in positions" :key="item.code" :value="item.code">
-                          {{ item.label }}
-                        </SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            </FormField>
-          </div>
-          <div class="col-span-6">
-            <FormField v-slot="{ componentField }" name="company">
-              <FormItem>
-                <FormLabel>Công ty</FormLabel>
-                <FormControl>
-                  <Input type="text" v-bind="componentField" :value="'CÔNG TY CỔ PHẦN DEHA VIỆT NAM'" disabled />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            </FormField>
-          </div>
-          <div class="col-span-3">
-            <FormField v-slot="{ componentField }" name="bankAccount" :validate-on-blur="!isFieldDirty">
-              <FormItem>
-                <FormLabel>Số tài khoản</FormLabel>
-                <FormControl>
-                  <Input type="text" placeholder="Nhập số tài khoản" v-bind="componentField" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            </FormField>
-          </div>
-          <div class="col-span-3">
-            <FormField v-slot="{ componentField }" name="accountName" :validate-on-blur="!isFieldDirty">
-              <FormItem>
-                <FormLabel>Tên tài khoản</FormLabel>
-                <FormControl>
-                  <Input type="text" placeholder="Nhập tên tài khoản" v-bind="componentField" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            </FormField>
-          </div>
-          <div class="col-span-3">
-            <FormField name="bankName">
-              <FormItem>
-                <FormLabel>Ngân hàng</FormLabel>
-                <FormControl>
-                  <Select v-model="bankNameValue">
-                    <SelectTrigger class="w-full">
-                      <SelectValue placeholder="Chọn ngân hàng" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem v-for="item in bankNames" :key="item.code" :value="item.code">
-                          {{ item.label }}
-                        </SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            </FormField>
-          </div>
-          <div class="col-span-3">
-            <FormField v-slot="{ componentField }" name="taxCode" :validate-on-blur="!isFieldDirty">
-              <FormItem>
-                <FormLabel>Mã số thuế</FormLabel>
-                <FormControl>
-                  <Input type="text" placeholder="Nhập mã số thuế" v-bind="componentField" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            </FormField>
-          </div>
-          <div class="col-span-3">
-            <FormField v-slot="{ componentField }" name="permanentAddress" :validate-on-blur="!isFieldDirty">
-              <FormItem>
-                <FormLabel>Địa chỉ thường trú</FormLabel>
-                <FormControl>
-                  <Input type="text" placeholder="Nhập địa chỉ thường trú" v-bind="componentField" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            </FormField>
-          </div>
-          <div class="col-span-3">
-            <FormField v-slot="{ componentField }" name="temporaryAddress" :validate-on-blur="!isFieldDirty">
-              <FormItem>
-                <FormLabel>Địa chỉ tạm trú</FormLabel>
-                <FormControl>
-                  <Input type="text" placeholder="Nhập địa chỉ tạm trú" v-bind="componentField" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            </FormField>
-          </div>
-        </div>
-        <div class="flex justify-end">
-          <Button type="submit" variant="primary">
-            Thêm nhân viên
-          </Button>
-        </div>
-      </form>
-    </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
     <TableListEmployee :data="dataEmployee" />
   </section>
 </template>
@@ -297,6 +305,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Input } from '@/components/ui/input'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'

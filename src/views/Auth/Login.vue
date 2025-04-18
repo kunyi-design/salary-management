@@ -79,7 +79,7 @@ const onSubmit = handleSubmit(async (values) => {
     const res = await AuthAPI.post('/login', values)
     toast.success('Đăng nhập thành công!')
     localStorage.setItem('token', res.token)
-    router.push('/')
+    router.push('/staff')
   } catch (err) {
     toast.error(err.message || 'Đăng nhập thất bại')
   }

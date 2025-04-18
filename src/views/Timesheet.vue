@@ -1,11 +1,25 @@
 <template>
   <section class="px-4 grid">
-    <div class="flex justify-end mb-10">
-      <Button variant="primary">
-        Đồng bộ dữ liệu
+    <div class="flex justify-end mb-10 gap-3">
+      <Popover>
+        <PopoverTrigger as-child>
+          <Button variant="outline" :class="cn(
+            'w-[280px] justify-start text-left font-normal',
+            !dateOfIssueValue && 'text-muted-foreground',
+          )">
+            <CalendarIcon class="mr-2 h-4 w-4" />
+            {{ dateOfIssueValue ? df.format(dateOfIssueValue.toDate(getLocalTimeZone())) : "Pick a date" }}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent class="w-auto p-0">
+          <Calendar v-model="dateOfIssueValue" initial-focus />
+        </PopoverContent>
+      </Popover>
+      <Button variant="primary" @click="dataSynchronization">
+        <Search />
       </Button>
     </div>
-    <div class="rounded-sm border w-full overflow-hidden">
+    <div class="rounded-sm border w-full overflow-hidden mb-3">
       <Table class=" relative">
         <TableHeader>
           <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
@@ -41,12 +55,48 @@
         </TableBody>
       </Table>
     </div>
+    <div class="flex justify-between">
+      <div class="text-sm flex items-center gap-2">
+        <span>Tìm thấy {{ data.length }} bản ghi</span>
+        <Select v-model="actions">
+          <SelectTrigger class="cursor-pointer" :disabled="selectedCount.length === 0">
+            <SelectValue placeholder="Chọn thao tác" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <!-- <SelectItem value="approve" class="cursor-pointer">
+                Phê duyệt
+              </SelectItem>
+              <SelectItem value="refuse" class="cursor-pointer">
+                Từ chối
+              </SelectItem> -->
+              <SelectItem value="refuse" class="cursor-pointer">
+                Xuất bảng công
+              </SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        <span>với {{ selectedCount.length }} bản ghi</span>
+        <Button variant="outline" class="ml-5" @click="exportPayPeriod"
+          :disabled="!actions || selectedCount.length === 0">Thực
+          hiện</Button>
+      </div>
+    </div>
     <input type="file" ref="fileInput" />
     <button @click="importExcel">Import</button>
   </section>
 </template>
 
 <script setup>
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Table,
   TableBody,
@@ -64,14 +114,21 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { toDate } from 'reka-ui/date'
+import { CalendarDate, DateFormatter, getLocalTimeZone, parseDate, today } from '@internationalized/date'
 import { valueUpdater } from '@/lib/utils'
 import { computed, h, onMounted, ref, watch } from 'vue'
-import { ArrowUpDown, ChevronDown, Plus } from 'lucide-vue-next'
+import { ArrowUpDown, ChevronDown, Plus, Search } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from "@/components/ui/checkbox";
 import { useStore } from 'vuex';
 import { toast } from 'vue-sonner'
+import { CalendarIcon } from 'lucide-vue-next'
 import TimeSheetAPI from '@/services/api/TimeSheetAPI'
+import { cn } from '@/lib/utils'
+import PayPeriodAPI from '@/services/api/PayPeriodAPI'
 
 const store = useStore()
 
@@ -81,6 +138,7 @@ const columnVisibility = ref({})
 const rowSelection = ref({})
 const expanded = ref({})
 const data = ref([])
+const actions = ref(null)
 const fileInput = ref(null)
 const dateColumns = computed(() => {
   if (!data.value.length) return columns;
@@ -126,6 +184,7 @@ const dateColumns = computed(() => {
 
   return [...columns, ...dynamicColumns, ...summaryColumns];
 });
+const selectedCount = computed(() => table.value.getSelectedRowModel().rows);
 const columns = [
   {
     id: 'stt',
@@ -217,7 +276,10 @@ const columns = [
     },
   },
 ];
-
+const df = new DateFormatter('en-US', {
+  dateStyle: 'long',
+})
+const now = new Date()
 const table = computed(() => useVueTable({
   data: data.value,
   columns: dateColumns.value,
@@ -239,11 +301,33 @@ const table = computed(() => useVueTable({
     get expanded() { return expanded.value },
   },
 }))
-
+const dateOfIssueValue = ref(new CalendarDate(now.getFullYear(), now.getMonth() + 1, 1))
 const getTimeSheet = async () => {
   try {
-    const res = await TimeSheetAPI.get('/employee')
+    const year = dateOfIssueValue.value.year
+    const month = dateOfIssueValue.value.month
+
+    const res = await TimeSheetAPI.get(`/?month=${month}&year=${year}`)
     data.value = res.data
+  }
+  catch (e) {
+    toast.error(e.message)
+  }
+}
+
+const dataSynchronization = async () => {
+  await getTimeSheet()
+}
+
+const exportPayPeriod = async () => {
+  try {
+    const employeeIds = selectedCount.value.map((i) => i.original.employee.employeeId)
+    const inputs = {
+      month: dateOfIssueValue.value.month,
+      year: dateOfIssueValue.value.year,
+      employeeIds
+    }
+    const res = await PayPeriodAPI.post(inputs)
   }
   catch (e) {
     toast.error(e.message)
@@ -261,13 +345,13 @@ const importExcel = async () => {
   const requestOptions = {
     method: "POST",
     headers: {
-      Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZmUwYWJkYzNhZmYzMzNkNTk2MGI1YyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc0NDcwMjE1NywiZXhwIjoxNzQ0Nzg4NTU3fQ.BIItleqIfyRHnR5Pe3KfjvbkwSDjL5jkKJHs89jNiJc",
+      Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZmNhZjdjYmQ3MTQxMDA3ZDkwYTM0MSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc0NDk1MDI3MywiZXhwIjoxNzQ1MDM2NjczfQ.CcNTuiNvKkx0X3Suj3zQm6UKbXI4bX5LcytABDB9Gf0",
     },
     body: formdata,
   };
 
   try {
-    const response = await fetch("https://api-qlns.onrender.com/api/attendance/import", requestOptions);
+    const response = await fetch("http://localhost:5000/api/attendance/import", requestOptions);
     const result = await response.json();
     console.log("Kết quả import:", result);
   } catch (error) {

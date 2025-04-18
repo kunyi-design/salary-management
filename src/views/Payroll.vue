@@ -66,6 +66,8 @@ import { ArrowUpDown, ChevronDown, Plus } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from "@/components/ui/checkbox";
 import { useStore } from 'vuex';
+import { toast } from 'vue-sonner'
+import PayPeriodAPI from '@/services/api/PayPeriodAPI'
 
 const store = useStore()
 const sorting = ref([])
@@ -73,9 +75,7 @@ const columnFilters = ref([])
 const columnVisibility = ref({})
 const rowSelection = ref({})
 const expanded = ref({})
-const data = [
-  { id: 1, payPeriodName: 'Kỳ trả lương tháng 06/2023-TSC-HO', companyName: 'Công ty cổ phần dịch vụ công nghệ TSC Việt Nam' }
-]
+const data = ref([])
 const columns = [
   {
     id: 'stt',
@@ -100,7 +100,7 @@ const columns = [
     enableHiding: false,
   },
   {
-    accessorKey: 'payPeriodName',
+    accessorKey: 'namePayPeriod',
     header: ({ column }) => {
       return h(Button, {
         variant: 'ghost',
@@ -109,15 +109,16 @@ const columns = [
       }, () => ['Tên kỳ trả lương', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })])
     },
     cell: ({ row }) => {
-      const code = row.getValue('payPeriodName')
+      const code = row.getValue('namePayPeriod')
+      const id = row.original._id
       return h('a', {
-        href: `/payroll/${code}`,
+        href: `/payroll/${id}`,
         class: 'text-center text-blue-500 block hover:text-blue-700',
       }, code)
     }
   },
   {
-    accessorKey: 'companyName',
+    accessorKey: 'company',
     header: ({ column }) => {
       return h(Button, {
         variant: 'ghost',
@@ -126,7 +127,7 @@ const columns = [
       }, () => ['Tên công ty', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })])
     },
     cell: ({ row }) => {
-      const code = row.getValue('companyName')
+      const code = row.getValue('company')
       return h('div', {
         class: 'text-center block uppercase',
       }, code)
@@ -155,7 +156,18 @@ const table = useVueTable({
   },
 })
 
+const getPayPeriods = async () => {
+  try {
+    const res = await PayPeriodAPI.get()
+    data.value = res.data
+  }
+  catch (e) {
+    toast.error(e.message)
+  }
+}
+
 onMounted(() => {
+  getPayPeriods()
   store.dispatch('app/setBreadcrumb', {
     parentTitle: 'Lương thưởng',
     currentTitle: 'Bảng lương',

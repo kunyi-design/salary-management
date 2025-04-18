@@ -66,7 +66,7 @@ const data = reactive({
       title: 'Lương thưởng',
       url: '#',
       icon: BadgeDollarSign,
-      isActive: false,
+      isActive: true,
       items: [
         {
           title: 'Bảng lương',

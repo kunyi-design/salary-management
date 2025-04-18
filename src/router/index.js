@@ -3,23 +3,23 @@ import Default from '@/views/Layouts/Default.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    {
-      path: '/',
-      meta: {
-        authRequired: true,
-      },
-      component: Default,
-      children: [
-        {
-          path: '/',
-          name: 'home',
-          component: () => import('../views/Home.vue'),
-          meta: {
-            title: 'Trang chủ',
-          },
-        },
-      ],
-    },
+    // {
+    //   path: '/',
+    //   meta: {
+    //     authRequired: true,
+    //   },
+    //   component: Default,
+    //   children: [
+    //     {
+    //       path: '/',
+    //       name: 'home',
+    //       component: () => import('../views/Home.vue'),
+    //       meta: {
+    //         title: 'Trang chủ',
+    //       },
+    //     },
+    //   ],
+    // },
     {
       path: '/staff',
       meta: {
@@ -53,11 +53,11 @@ const router = createRouter({
           name: 'Payroll',
           component: () => import('../views/Payroll.vue'),
         },
-        // {
-        //   path: '/staff/:code',
-        //   name: 'StaffDetail',
-        //   component: () => import('../views/StaffDetail.vue'),
-        // },
+        {
+          path: '/payroll/:id',
+          name: 'PayrollDetail',
+          component: () => import('../views/PayrollDetail.vue'),
+        },
       ],
     },
     {
