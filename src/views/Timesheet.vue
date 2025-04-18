@@ -345,13 +345,13 @@ const importExcel = async () => {
   const requestOptions = {
     method: "POST",
     headers: {
-      Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZmNhZjdjYmQ3MTQxMDA3ZDkwYTM0MSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc0NDk1MDI3MywiZXhwIjoxNzQ1MDM2NjczfQ.CcNTuiNvKkx0X3Suj3zQm6UKbXI4bX5LcytABDB9Gf0",
+      Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZmUwYWJkYzNhZmYzMzNkNTk2MGI1YyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc0NDk4NTkyOCwiZXhwIjoxNzQ1MDcyMzI4fQ.kt8iXug_meLAyVLKANlggOcFpl4_Q-XWyjCVlRfxTt0",
     },
     body: formdata,
   };
 
   try {
-    const response = await fetch("http://localhost:5000/api/attendance/import", requestOptions);
+    const response = await fetch("https://api-qlns.onrender.com/api/attendance/import", requestOptions);
     const result = await response.json();
     console.log("Kết quả import:", result);
   } catch (error) {
