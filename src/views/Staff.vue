@@ -342,7 +342,7 @@ const departments = ref([
   { id: 5, label: 'Phòng chăm sóc khách hàng', code: 'Phòng chăm sóc khách hàng' },
 ])
 const positions = ref([
-  { id: 1, label: 'TBP - Trưởng bộ phận thành', code: 'TBP - Trưởng bộ phận' },
+  { id: 1, label: 'TBP - Trưởng bộ phận', code: 'TBP - Trưởng bộ phận' },
   { id: 2, label: 'TPHCNS - Trưởng phòng HCNS', code: 'TPHCNS - Trưởng phòng HCNS' },
 ])
 
