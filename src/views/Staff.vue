@@ -38,7 +38,7 @@
                           </PopoverTrigger>
                           <PopoverContent class="w-auto p-0">
                             <Calendar v-model="value" calendar-label="Date of birth" initial-focus
-                              :min-value="new CalendarDate(1900, 1, 1)" :max-value="new CalendarDate(2004, 1, 1)"
+                              :min-value="new CalendarDate(1900, 1, 1)" :max-value="new CalendarDate(2004, 12, 31)"
                               @update:model-value="(v) => {
                                 if (v) {
                                   setFieldValue('dateOfBirth', v.toString())
@@ -47,6 +47,7 @@
                                   setFieldValue('dateOfBirth', undefined)
                                 }
                               }" />
+
                           </PopoverContent>
                         </Popover>
                       </FormControl>
@@ -468,9 +469,11 @@ const { isFieldDirty, handleSubmit, values, setFieldValue, resetForm } = useForm
   }
 })
 const value = computed({
-  get: () => values.dateOfBirth ? parseDate(values.dateOfBirth) : undefined,
-  set: val => val,
-})
+  get: () => values.dateOfBirth ? new CalendarDate(...parseDate(values.dateOfBirth)) : undefined,
+  set: (val) => {
+    values.dateOfBirth = val ? val.toString() : undefined;
+  },
+});
 const dateOfIssueValue = computed({
   get: () => values.dateOfIssue ? parseDate(values.dateOfIssue) : undefined,
   set: val => val,
