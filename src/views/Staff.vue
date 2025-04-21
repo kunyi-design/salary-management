@@ -12,7 +12,7 @@
                     <FormItem>
                       <FormLabel>Tên nhân viên</FormLabel>
                       <FormControl>
-                        <Input type="text" placeholder="Ngô Thị Thu Hiền" v-bind="componentField" />
+                        <Input type="text" placeholder="Nhập tên nhân viên" v-bind="componentField" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -38,7 +38,7 @@
                           </PopoverTrigger>
                           <PopoverContent class="w-auto p-0">
                             <Calendar v-model="value" calendar-label="Date of birth" initial-focus
-                              :min-value="new CalendarDate(1900, 1, 1)" :max-value="today(getLocalTimeZone())"
+                              :min-value="new CalendarDate(1900, 1, 1)" :max-value="new CalendarDate(2004, 1, 1)"
                               @update:model-value="(v) => {
                                 if (v) {
                                   setFieldValue('dateOfBirth', v.toString())
@@ -59,7 +59,7 @@
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input type="text" placeholder="hienntt@gmail.com" v-bind="componentField" />
+                        <Input type="text" placeholder="Nhập email" v-bind="componentField" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -70,7 +70,7 @@
                     <FormItem>
                       <FormLabel>Số điện thoại</FormLabel>
                       <FormControl>
-                        <Input type="text" placeholder="0915818189" v-bind="componentField" />
+                        <Input type="text" placeholder="Nhập số điện thoại" v-bind="componentField" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -361,11 +361,17 @@ const positions = ref([
   { id: 5, label: 'TP NS - Trưởng phòng Nhân Sự', code: 'TP NS - Trưởng phòng Nhân Sự', parentId: 'HR- Phòng Đào tạo , Nhân sự' },
   { id: 6, label: 'NV NS - Nhân viên Nhân Sự', code: 'NV NS - Nhân viên Nhân Sự', parentId: 'HR- Phòng Đào tạo , Nhân sự' },
   { id: 7, label: 'TP PT - Trưởng phòng Phát Triển Thị Trường', code: 'TP PT - Trưởng phòng Phát Triển Thị Trường', parentId: 'BPPT - Bộ phận Phát triển Thị trường' },
-  { id: 8, label: 'NV PT - Nhân viên Phát Triển Thị Trường', code: 'NV PT - Nhân viên Phát Triển Thị Trường', parentId: 'BPPT - Bộ phận Phát triển Thị trường' },
-  { id: 9, label: 'TP ITS - Trưởng phòng IT Server', code: 'TP ITS - Trưởng phòng IT Server', parentId: 'ITS - Phòng IT Server' },
-  { id: 10, label: 'NV ITS - Nhân viên IT Server', code: 'NV ITS - Nhân viên IT Server', parentId: 'ITS - Phòng IT Server' },
-  { id: 11, label: 'TP QA - Trưởng phòng Quản Lý Quy Trình', code: 'TP QA - Trưởng phòng Quản Lý Quy Trình', parentId: 'QA - Phòng Quản lý Quy trình' },
-  { id: 12, label: 'NV QA - Nhân viên Quản Lý Quy Trình', code: 'NV QA - Nhân viên Quản Lý Quy Trình', parentId: 'QA - Phòng Quản lý Quy trình' },
+
+  { id: 8, label: 'PO - Quản lý chất lượng sản phẩm', code: 'PO - Quản lý chất lượng sản phẩm', parentId: 'BPPT - Bộ phận Phát triển Thị trường' },
+  { id: 9, label: 'PM - Quản lý dự án', code: 'PM - Quản lý dự án', parentId: 'BPPT - Bộ phận Phát triển Thị trường' },
+  { id: 10, label: 'BA - Nhân viên nghiệp vụ', code: 'BA - Nhân viên nghiệp vụ', parentId: 'BPPT - Bộ phận Phát triển Thị trường' },
+  { id: 11, label: 'DEV - Nhân viên lập trình', code: 'DEV - Nhân viên lập trình', parentId: 'BPPT - Bộ phận Phát triển Thị trường' },
+  { id: 12, label: 'TESTER - Nhân viên kiểm thử', code: 'TESTER - Nhân viên kiểm thử', parentId: 'BPPT - Bộ phận Phát triển Thị trường' },
+
+  { id: 13, label: 'TP ITS - Trưởng phòng IT Server', code: 'TP ITS - Trưởng phòng IT Server', parentId: 'ITS - Phòng IT Server' },
+  { id: 14, label: 'NV ITS - Nhân viên IT Server', code: 'NV ITS - Nhân viên IT Server', parentId: 'ITS - Phòng IT Server' },
+  { id: 15, label: 'TP QA - Trưởng phòng Quản Lý Quy Trình', code: 'TP QA - Trưởng phòng Quản Lý Quy Trình', parentId: 'QA - Phòng Quản lý Quy trình' },
+  { id: 16, label: 'NV QA - Nhân viên Quản Lý Quy Trình', code: 'NV QA - Nhân viên Quản Lý Quy Trình', parentId: 'QA - Phòng Quản lý Quy trình' },
 ])
 const branchs = ref([
   { id: 1, label: 'HN - Trụ sở chính', code: 'HN - Trụ sở chính' },
