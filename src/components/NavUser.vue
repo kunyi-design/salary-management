@@ -19,6 +19,9 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 import {
   BadgeCheck,
   Bell,
@@ -40,6 +43,11 @@ const props = defineProps({
     required: true,
   },
 })
+
+const logout = () => {
+  localStorage.removeItem('token')
+  router.push('/login')
+}
 const { isMobile } = useSidebar()
 </script>
 <template>
@@ -74,29 +82,7 @@ const { isMobile } = useSidebar()
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem>
-              <Sparkles />
-              Upgrade to Pro
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem>
-              <BadgeCheck />
-              Account
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <CreditCard />
-              Billing
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Bell />
-              Notifications
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>
+          <DropdownMenuItem @click="logout">
             <LogOut />
             Log out
           </DropdownMenuItem>

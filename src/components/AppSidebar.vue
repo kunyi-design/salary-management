@@ -34,19 +34,9 @@ const data = reactive({
   user: {},
   teams: [
     {
-      name: 'Acme Inc',
-      logo: GalleryVerticalEnd,
+      name: 'DEHA',
+      logo: 'https://deha-soft.com/wp-content/uploads/2023/05/logo-1.png',
       plan: 'Enterprise',
-    },
-    {
-      name: 'Acme Corp.',
-      logo: AudioWaveform,
-      plan: 'Startup',
-    },
-    {
-      name: 'Evil Corp.',
-      logo: Command,
-      plan: 'Free',
     },
   ],
   navMain: [
