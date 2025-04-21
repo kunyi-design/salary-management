@@ -44,26 +44,93 @@
                     <FormControl>
                       <Button variant="outline" :class="cn(
                         'w-full ps-3 text-start font-normal',
-                        !value && 'text-muted-foreground',
+                        !placeholder && 'text-muted-foreground',
                       )">
-                        <span>{{ value ? df.format(toDate(value)) : "Chọn ngày sinh" }}</span>
+                        <span>{{ placeholder ? df.format(toDate(placeholder)) : "Chọn ngày sinh" }}</span>
                         <CalendarIcon class="ms-auto h-4 w-4 opacity-50" />
                       </Button>
                       <input hidden>
                     </FormControl>
                   </PopoverTrigger>
                   <PopoverContent class="w-auto p-0">
-                    <Calendar v-model="value" calendar-label="Date of birth" initial-focus
-                      :min-value="new CalendarDate(1900, 1, 1)" :max-value="today(getLocalTimeZone())"
-                      @update:model-value="(v) => {
-                        if (v) {
-                          const iso = toDate(v).toISOString()
-                          setFieldValue('birthDate', iso)
-                        }
-                        else {
-                          setFieldValue('birthDate', undefined)
-                        }
-                      }" />
+                    <!-- <Calendar v-model="value" calendar-label="Date of birth" initial-focus
+                              :min-value="new CalendarDate(1900, 1, 1)" :max-value="new CalendarDate(2025, 12, 31)"
+                              @update:model-value="(v) => {
+                                console.log(v)
+                                if (v) {
+                                  setFieldValue('dateOfBirth', v.toString())
+                                }
+                                else {
+                                  setFieldValue('dateOfBirth', undefined)
+                                }
+                              }" /> -->
+                    <CalendarRoot v-slot="{ date, grid, weekDays }" v-model:placeholder="placeholder" v-bind="forwarded"
+                      :class="cn('rounded-md border p-3', props.class)">
+                      <CalendarHeader>
+                        <CalendarHeading class="flex w-full items-center justify-between gap-2">
+                          <Select :default-value="placeholder.month.toString()" @update:model-value="(v) => {
+                            if (!v || !placeholder) return;
+                            if (Number(v) === placeholder?.month) return;
+                            placeholder = placeholder.set({
+                              month: Number(v),
+                            })
+                          }">
+                            <SelectTrigger aria-label="Select month" class="w-[60%]">
+                              <SelectValue placeholder="Select month" />
+                            </SelectTrigger>
+                            <SelectContent class="max-h-[200px]">
+                              <SelectItem v-for="month in createYear({ dateObj: date })" :key="month.toString()"
+                                :value="month.month.toString()">
+                                {{ formatter.custom(toDate(month), { month: 'long' }) }}
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          <Select :default-value="placeholder.year.toString()" @update:model-value="(v) => {
+                            if (!v || !placeholder) return;
+                            if (Number(v) === placeholder?.year) return;
+                            placeholder = placeholder.set({
+                              year: Number(v),
+                            })
+                          }">
+                            <SelectTrigger aria-label="Select year" class="w-[40%]">
+                              <SelectValue placeholder="Select year" />
+                            </SelectTrigger>
+                            <SelectContent class="max-h-[200px]">
+                              <SelectItem
+                                v-for="yearValue in createDecade({ dateObj: date, startIndex: -10, endIndex: 10 })"
+                                :key="yearValue.toString()" :value="yearValue.year.toString()">
+                                {{ yearValue.year }}
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </CalendarHeading>
+                      </CalendarHeader>
+
+                      <div class="flex flex-col space-y-4 pt-4 sm:flex-row sm:gap-x-4 sm:gap-y-0">
+                        <CalendarGrid v-for="month in grid" :key="month.value.toString()">
+                          <CalendarGridHead>
+                            <CalendarGridRow>
+                              <CalendarHeadCell v-for="day in weekDays" :key="day">
+                                {{ day }}
+                              </CalendarHeadCell>
+                            </CalendarGridRow>
+                          </CalendarGridHead>
+                          <CalendarGridBody class="grid">
+                            <CalendarGridRow v-for="(weekDates, index) in month.rows" :key="`weekDate-${index}`"
+                              class="mt-2 w-full">
+                              <CalendarCell v-for="weekDate in weekDates" :key="weekDate.toString()" :date="weekDate">
+                                <CalendarCellTrigger :day="weekDate" :month="month.value" @click="() => {
+                                  const date = weekDate.toDate(); // chuyển thành Date
+                                  setFieldValue('birthDate', df.format(new Date(date.toISOString())));
+                                  placeholder = weekDate;
+                                }" />
+                              </CalendarCell>
+                            </CalendarGridRow>
+                          </CalendarGridBody>
+                        </CalendarGrid>
+                      </div>
+                    </CalendarRoot>
                   </PopoverContent>
                 </Popover>
               </FormControl>
@@ -129,7 +196,7 @@
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem v-for="item in positions" :key="item.code" :value="item.code">
+                      <SelectItem v-for="item in filteredPositions" :key="item.code" :value="item.code">
                         {{ item.label }}
                       </SelectItem>
                     </SelectGroup>
@@ -145,7 +212,7 @@
             <FormItem>
               <FormLabel>Công ty</FormLabel>
               <FormControl>
-                <Input type="text" v-bind="componentField" :value="'CÔNG TY CỔ PHẦN DEHA VIỆT NAM'" disabled />
+                <Input type="text" v-bind="componentField" disabled />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -597,7 +664,6 @@ import { useStore } from 'vuex';
 import { useForm } from 'vee-validate'
 import * as z from 'zod'
 import { cn } from '@/lib/utils'
-import { toDate } from 'reka-ui/date'
 import { toTypedSchema } from '@vee-validate/zod'
 import EmployeeAPI from '@/services/api/EmployeeAPI';
 import { Button } from '@/components/ui/button'
@@ -645,11 +711,14 @@ import { ArrowUpDown, ChevronDown } from 'lucide-vue-next'
 import { valueUpdater } from '@/lib/utils'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { Calendar } from '@/components/ui/calendar'
+import { Calendar, CalendarCell, CalendarCellTrigger, CalendarGrid, CalendarGridBody, CalendarGridHead, CalendarGridRow, CalendarHeadCell, CalendarHeader, CalendarHeading } from '@/components/ui/calendar'
+import { useVModel } from '@vueuse/core'
+
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { CalendarDate, DateFormatter, getLocalTimeZone, parseDate, today, fromDate } from '@internationalized/date'
 import { CalendarIcon, XIcon } from 'lucide-vue-next'
-
+import { CalendarRoot, useDateFormatter, useForwardPropsEmits } from 'reka-ui'
+import { toDate, createDecade, createYear } from 'reka-ui/date'
 const store = useStore()
 const route = useRoute()
 const router = useRouter()
@@ -658,6 +727,29 @@ const currentTab = ref('contract')
 const df = new DateFormatter('en-US', {
   dateStyle: 'long',
 })
+const props = withDefaults(defineProps(), {
+  modelValue: undefined,
+  placeholder() {
+    return today(getLocalTimeZone());
+  },
+  weekdayFormat: 'short',
+});
+
+const emits = defineEmits();
+
+const delegatedProps = computed(() => {
+  const { class: _, placeholder: __, ...delegated } = props;
+  return delegated;
+});
+
+const placeholder = useVModel(props, 'modelValue', emits, {
+  passive: true,
+  defaultValue: data.value.birthDate || today(getLocalTimeZone()),
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+
+const formatter = useDateFormatter('en');
 const formSchema = toTypedSchema(
   z.object({
     fullName: z
@@ -692,8 +784,16 @@ const formSchema = toTypedSchema(
       .min(9, { message: 'Số CMND phải có ít nhất 9 ký tự' })
       .max(12, { message: 'Số CMND không được quá 12 ký tự' }),
     company: z.string().default('CÔNG TY CỔ PHẦN DEHA VIỆT NAM'),
-    department: z.string().default('phongnhansu'),
-    position: z.string().default('giamdoc'),
+    department: z
+      .union([z.string(), z.number()])
+      .refine((val) => !!val, {
+        message: 'Vui lòng chọn phòng ban',
+      }),
+    position: z
+      .union([z.string(), z.number()])
+      .refine((val) => !!val, {
+        message: 'Vui lòng chọn vị trí công việc',
+      }),
     bankAccount: z
       .string({ required_error: 'Vui lòng nhập số tài khoản' })
       .min(10, { message: 'Số tài khoản phải có ít nhất 10 ký tự' })
@@ -737,18 +837,32 @@ const { isFieldDirty, handleSubmit, values, setFieldValue, resetForm } = useForm
   validationSchema: formSchema,
 })
 const departments = ref([
-  { id: 1, label: 'Phòng nhân sự', code: 'Phòng nhân sự' },
-  { id: 2, label: 'Phòng kế toán', code: 'Phòng kế toán' },
-  { id: 3, label: 'Phòng marketing', code: 'Phòng marketing' },
-  { id: 4, label: 'Phòng kỹ thuật', code: 'Phòng kỹ thuật' },
-  { id: 5, label: 'Phòng chăm sóc khách hàng', code: 'Phòng chăm sóc khách hàng' },
+  { id: 1, label: 'BOM - Ban điều hành', code: 'BOM - Ban điều hành' },
+  { id: 2, label: 'ATC - Phòng Admin, Tài chính', code: 'ATC - Phòng Admin, Tài chính' },
+  { id: 3, label: 'HR- Phòng Đào tạo , Nhân sự', code: 'HR- Phòng Đào tạo , Nhân sự' },
+  { id: 4, label: 'BPPT - Bộ phận Phát triển Thị trường', code: 'BPPT - Bộ phận Phát triển Thị trường' },
+  { id: 5, label: 'ITS - Phòng IT Server', code: 'ITS - Phòng IT Server' },
+  { id: 6, label: 'QA - Phòng Quản lý Quy trình', code: 'QA - Phòng Quản lý Quy trình' },
 ])
 const positions = ref([
-  { id: 1, label: 'Giám đốc', code: 'Giám đốc' },
-  { id: 2, label: 'Phó giám đốc', code: 'Phó giám đốc' },
-  { id: 3, label: 'Trưởng phòng', code: 'Trưởng phòng' },
-  { id: 4, label: 'Nhân viên', code: 'Nhân viên' },
-  { id: 5, label: 'Thực tập sinh', code: 'Thực tập sinh' },
+  { id: 1, label: 'TP ĐH - Trưởng phòng Điều Hành', code: 'TP ĐH - Trưởng phòng Điều Hành', parentId: 'BOM - Ban điều hành' },
+  { id: 2, label: 'NV ĐH - Nhân viên Điều Hành', code: 'NV ĐH - Nhân viên Điều Hành', parentId: 'BOM - Ban điều hành' },
+  { id: 3, label: 'KTT - Kế toán trưởng', code: 'KTT - Kế toán trưởng', parentId: 'ATC - Phòng Admin, Tài chính' },
+  { id: 4, label: 'NV KT - Nhân viên Kế Toán', code: 'NV KT - Nhân viên Kế Toán', parentId: 'ATC - Phòng Admin, Tài chính' },
+  { id: 5, label: 'TP NS - Trưởng phòng Nhân Sự', code: 'TP NS - Trưởng phòng Nhân Sự', parentId: 'HR- Phòng Đào tạo , Nhân sự' },
+  { id: 6, label: 'NV NS - Nhân viên Nhân Sự', code: 'NV NS - Nhân viên Nhân Sự', parentId: 'HR- Phòng Đào tạo , Nhân sự' },
+  { id: 7, label: 'TP PT - Trưởng phòng Phát Triển Thị Trường', code: 'TP PT - Trưởng phòng Phát Triển Thị Trường', parentId: 'BPPT - Bộ phận Phát triển Thị trường' },
+
+  { id: 8, label: 'PO - Quản lý chất lượng sản phẩm', code: 'PO - Quản lý chất lượng sản phẩm', parentId: 'BPPT - Bộ phận Phát triển Thị trường' },
+  { id: 9, label: 'PM - Quản lý dự án', code: 'PM - Quản lý dự án', parentId: 'BPPT - Bộ phận Phát triển Thị trường' },
+  { id: 10, label: 'BA - Nhân viên nghiệp vụ', code: 'BA - Nhân viên nghiệp vụ', parentId: 'BPPT - Bộ phận Phát triển Thị trường' },
+  { id: 11, label: 'DEV - Nhân viên lập trình', code: 'DEV - Nhân viên lập trình', parentId: 'BPPT - Bộ phận Phát triển Thị trường' },
+  { id: 12, label: 'TESTER - Nhân viên kiểm thử', code: 'TESTER - Nhân viên kiểm thử', parentId: 'BPPT - Bộ phận Phát triển Thị trường' },
+
+  { id: 13, label: 'TP ITS - Trưởng phòng IT Server', code: 'TP ITS - Trưởng phòng IT Server', parentId: 'ITS - Phòng IT Server' },
+  { id: 14, label: 'NV ITS - Nhân viên IT Server', code: 'NV ITS - Nhân viên IT Server', parentId: 'ITS - Phòng IT Server' },
+  { id: 15, label: 'TP QA - Trưởng phòng Quản Lý Quy Trình', code: 'TP QA - Trưởng phòng Quản Lý Quy Trình', parentId: 'QA - Phòng Quản lý Quy trình' },
+  { id: 16, label: 'NV QA - Nhân viên Quản Lý Quy Trình', code: 'NV QA - Nhân viên Quản Lý Quy Trình', parentId: 'QA - Phòng Quản lý Quy trình' },
 ])
 
 const bankNames = ref([
@@ -758,11 +872,11 @@ const bankNames = ref([
   { id: 4, label: 'Ngân hàng Agribank', code: 'Ngân hàng Agribank' },
   { id: 5, label: 'Ngân hàng ACB', code: 'Ngân hàng ACB' },
 ])
-const value = computed(() => {
-  if (!values.birthDate) return undefined
-  const d = new Date(values.birthDate)
-  return isNaN(d.getTime()) ? undefined : fromDate(d)
-})
+// const value = computed(() => {
+//   if (!values.birthDate) return undefined
+//   const d = new Date(values.birthDate)
+//   return isNaN(d.getTime()) ? undefined : fromDate(d)
+// })
 
 const dateOfIssueValue = computed(() => {
   if (!values.dateOfIssue) return undefined
@@ -782,7 +896,10 @@ const bankNameValue = computed({
   get: () => values.bankName,
   set: val => setFieldValue('bankName', val),
 })
-
+const filteredPositions = computed(() => {
+  if (!values.department) return []
+  return positions.value.filter(pos => pos.parentId === values.department)
+})
 const getStaff = async () => {
   try {
     const code = route.params.code
@@ -793,6 +910,7 @@ const getStaff = async () => {
     setFieldValue('employeeId', data.value.employeeId)
     setFieldValue('fullName', data.value.fullName)
     setFieldValue('birthDate', data.value.birthDate)
+    setFieldValue('company', data.value.company)
     setFieldValue('email', data.value.email)
     setFieldValue('phone', data.value.phone)
     setFieldValue('cmnd', data.value.personalInfo?.idCard?.number || '')
@@ -1048,8 +1166,12 @@ const onDelete = async () => {
     toast.error(e.message)
   }
 }
-onMounted(() => {
-  getStaff()
+onMounted(async () => {
+  await getStaff()
+  const date = new Date(data.value.birthDate);
+  const tz = getLocalTimeZone();
+  const calendarDate = fromDate(date, tz);
+  placeholder.value = calendarDate
   store.dispatch('app/setBreadcrumb', {
     parentTitle: 'Nhân viên',
     currentTitle: route.params.code,

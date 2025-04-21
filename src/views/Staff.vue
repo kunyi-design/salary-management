@@ -28,26 +28,94 @@
                             <FormControl>
                               <Button variant="outline" :class="cn(
                                 'w-full ps-3 text-start font-normal',
-                                !value && 'text-muted-foreground',
+                                !placeholder && 'text-muted-foreground',
                               )">
-                                <span>{{ value ? df.format(toDate(value)) : "Chọn ngày sinh" }}</span>
+                                <span>{{ placeholder ? df.format(toDate(placeholder)) : "Chọn ngày sinh" }}</span>
                                 <CalendarIcon class="ms-auto h-4 w-4 opacity-50" />
                               </Button>
                               <input hidden>
                             </FormControl>
                           </PopoverTrigger>
                           <PopoverContent class="w-auto p-0">
-                            <Calendar v-model="value" calendar-label="Date of birth" initial-focus
-                              :min-value="new CalendarDate(1900, 1, 1)" :max-value="new CalendarDate(2004, 12, 31)"
+                            <!-- <Calendar v-model="value" calendar-label="Date of birth" initial-focus
+                              :min-value="new CalendarDate(1900, 1, 1)" :max-value="new CalendarDate(2025, 12, 31)"
                               @update:model-value="(v) => {
+                                console.log(v)
                                 if (v) {
                                   setFieldValue('dateOfBirth', v.toString())
                                 }
                                 else {
                                   setFieldValue('dateOfBirth', undefined)
                                 }
-                              }" />
+                              }" /> -->
+                            <CalendarRoot v-slot="{ date, grid, weekDays }" v-model:placeholder="placeholder"
+                              v-bind="forwarded" :class="cn('rounded-md border p-3', props.class)">
+                              <CalendarHeader>
+                                <CalendarHeading class="flex w-full items-center justify-between gap-2">
+                                  <Select :default-value="placeholder.month.toString()" @update:model-value="(v) => {
+                                    if (!v || !placeholder) return;
+                                    if (Number(v) === placeholder?.month) return;
+                                    placeholder = placeholder.set({
+                                      month: Number(v),
+                                    })
+                                  }">
+                                    <SelectTrigger aria-label="Select month" class="w-[60%]">
+                                      <SelectValue placeholder="Select month" />
+                                    </SelectTrigger>
+                                    <SelectContent class="max-h-[200px]">
+                                      <SelectItem v-for="month in createYear({ dateObj: date })" :key="month.toString()"
+                                        :value="month.month.toString()">
+                                        {{ formatter.custom(toDate(month), { month: 'long' }) }}
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
 
+                                  <Select :default-value="placeholder.year.toString()" @update:model-value="(v) => {
+                                    if (!v || !placeholder) return;
+                                    if (Number(v) === placeholder?.year) return;
+                                    placeholder = placeholder.set({
+                                      year: Number(v),
+                                    })
+                                  }">
+                                    <SelectTrigger aria-label="Select year" class="w-[40%]">
+                                      <SelectValue placeholder="Select year" />
+                                    </SelectTrigger>
+                                    <SelectContent class="max-h-[200px]">
+                                      <SelectItem
+                                        v-for="yearValue in createDecade({ dateObj: date, startIndex: -10, endIndex: 10 })"
+                                        :key="yearValue.toString()" :value="yearValue.year.toString()">
+                                        {{ yearValue.year }}
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </CalendarHeading>
+                              </CalendarHeader>
+
+                              <div class="flex flex-col space-y-4 pt-4 sm:flex-row sm:gap-x-4 sm:gap-y-0">
+                                <CalendarGrid v-for="month in grid" :key="month.value.toString()">
+                                  <CalendarGridHead>
+                                    <CalendarGridRow>
+                                      <CalendarHeadCell v-for="day in weekDays" :key="day">
+                                        {{ day }}
+                                      </CalendarHeadCell>
+                                    </CalendarGridRow>
+                                  </CalendarGridHead>
+                                  <CalendarGridBody class="grid">
+                                    <CalendarGridRow v-for="(weekDates, index) in month.rows" :key="`weekDate-${index}`"
+                                      class="mt-2 w-full">
+                                      <CalendarCell v-for="weekDate in weekDates" :key="weekDate.toString()"
+                                        :date="weekDate">
+                                        <CalendarCellTrigger :day="weekDate" :month="month.value" @click="() => {
+                                          const date = weekDate.toDate();
+                                          setFieldValue('dateOfBirth', df.format(new Date(date.toISOString())));
+                                          placeholder = weekDate;
+                                        }" />
+                                      </CalendarCell>
+                                    </CalendarGridRow>
+                                  </CalendarGridBody>
+                                </CalendarGrid>
+                              </div>
+                            </CalendarRoot>
                           </PopoverContent>
                         </Popover>
                       </FormControl>
@@ -109,7 +177,7 @@
                           </PopoverTrigger>
                           <PopoverContent class="w-auto p-0">
                             <Calendar v-model="dateOfIssueValue" calendar-label="Date of birth" initial-focus
-                              :min-value="new CalendarDate(1900, 1, 1)" :max-value="today(getLocalTimeZone())"
+                              :min-value="new CalendarDate(2024, 1, 1)" :max-value="today(getLocalTimeZone())"
                               @update:model-value="(v) => {
                                 if (v) {
                                   setFieldValue('dateOfIssue', v.toString())
@@ -322,14 +390,14 @@ import {
 } from '@/components/ui/select'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Input } from '@/components/ui/input'
-import { Calendar } from '@/components/ui/calendar'
+import { Calendar, CalendarCell, CalendarCellTrigger, CalendarGrid, CalendarGridBody, CalendarGridHead, CalendarGridRow, CalendarHeadCell, CalendarHeader, CalendarHeading } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 // import { toast } from '@/components/ui/toast/use-toast'
 
 import { toTypedSchema } from '@vee-validate/zod'
 import { useForm } from 'vee-validate'
 import { useStore } from 'vuex';
-import { toDate } from 'reka-ui/date'
+import { toDate, createDecade, createYear } from 'reka-ui/date'
 import { CalendarDate, DateFormatter, getLocalTimeZone, parseDate, today } from '@internationalized/date'
 import { h } from 'vue'
 import * as z from 'zod'
@@ -337,6 +405,8 @@ import { cn } from '@/lib/utils'
 import { CalendarIcon } from 'lucide-vue-next'
 import EmployeeAPI from '@/services/api/EmployeeAPI';
 import { toast } from 'vue-sonner'
+import { useVModel } from '@vueuse/core'
+import { CalendarRoot, useDateFormatter, useForwardPropsEmits } from 'reka-ui'
 
 const store = useStore()
 const df = new DateFormatter('en-US', {
@@ -468,17 +538,38 @@ const { isFieldDirty, handleSubmit, values, setFieldValue, resetForm } = useForm
     bankName: ''
   }
 })
-const value = computed({
-  get: () => values.dateOfBirth ? new CalendarDate(...parseDate(values.dateOfBirth)) : undefined,
-  set: (val) => {
-    values.dateOfBirth = val ? val.toString() : undefined;
+const props = withDefaults(defineProps(), {
+  modelValue: undefined,
+  placeholder() {
+    return today(getLocalTimeZone());
   },
+  weekdayFormat: 'short',
 });
+
+const emits = defineEmits();
+
+const delegatedProps = computed(() => {
+  const { class: _, placeholder: __, ...delegated } = props;
+  return delegated;
+});
+
+const placeholder = useVModel(props, 'modelValue', emits, {
+  passive: true,
+  defaultValue: today(getLocalTimeZone()),
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+
+const formatter = useDateFormatter('en');
+
+// const value = computed({
+//   get: () => values.dateOfBirth ? parseDate(values.dateOfBirth) : undefined,
+//   set: val => val,
+// });
 const dateOfIssueValue = computed({
   get: () => values.dateOfIssue ? parseDate(values.dateOfIssue) : undefined,
   set: val => val,
 })
-
 const departmentValue = computed({
   get: () => values.department,
   set: val => {
@@ -544,7 +635,6 @@ const onSubmit = handleSubmit(async (values) => {
         temporaryAddress: values.temporaryAddress
       }
     }
-
     await EmployeeAPI.post('', inputs)
     toast.success("Thêm nhân viên thành công")
     resetForm()
