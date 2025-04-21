@@ -161,7 +161,7 @@
                 </div>
                 <div class="col-span-3">
                   <FormField name="position">
-                    <FormItem>
+                    <FormItem class="w-full flex gap-2 flex-col">
                       <FormLabel>Vị trí công việc</FormLabel>
                       <FormControl>
                         <Select v-model="positionValue">
@@ -170,7 +170,7 @@
                           </SelectTrigger>
                           <SelectContent>
                             <SelectGroup>
-                              <SelectItem v-for="item in positions" :key="item.code" :value="item.code">
+                              <SelectItem v-for="item in filteredPositions" :key="item.id" :value="item.code">
                                 {{ item.label }}
                               </SelectItem>
                             </SelectGroup>
@@ -182,11 +182,22 @@
                   </FormField>
                 </div>
                 <div class="col-span-6">
-                  <FormField v-slot="{ componentField }" name="company">
-                    <FormItem>
-                      <FormLabel>Công ty</FormLabel>
+                  <FormField name="company">
+                    <FormItem class="w-full flex gap-2 flex-col">
+                      <FormLabel>Chi nhánh</FormLabel>
                       <FormControl>
-                        <Input type="text" v-bind="componentField" :value="'CÔNG TY CỔ PHẦN DEHA VIỆT NAM'" disabled />
+                        <Select v-model="branchValue">
+                          <SelectTrigger class="w-full">
+                            <SelectValue placeholder="Chọn chi nhánh" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectItem v-for="item in branchs" :key="item.id" :value="item.code">
+                                {{ item.label }}
+                              </SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -335,17 +346,33 @@ const isLoading = ref(false)
 const defaultValue = ref('')
 const dataEmployee = ref([])
 const departments = ref([
-  { id: 1, label: 'Phòng nhân sự', code: 'Phòng nhân sự' },
-  { id: 2, label: 'Phòng kế toán', code: 'Phòng kế toán' },
-  { id: 3, label: 'Phòng marketing', code: 'Phòng marketing' },
-  { id: 4, label: 'Phòng kỹ thuật', code: 'Phòng kỹ thuật' },
-  { id: 5, label: 'Phòng chăm sóc khách hàng', code: 'Phòng chăm sóc khách hàng' },
+  { id: 1, label: 'BOM - Ban điều hành', code: 'BOM - Ban điều hành' },
+  { id: 2, label: 'ATC - Phòng Admin, Tài chính', code: 'ATC - Phòng Admin, Tài chính' },
+  { id: 3, label: 'HR- Phòng Đào tạo , Nhân sự', code: 'HR- Phòng Đào tạo , Nhân sự' },
+  { id: 4, label: 'BPPT - Bộ phận Phát triển Thị trường', code: 'BPPT - Bộ phận Phát triển Thị trường' },
+  { id: 5, label: 'ITS - Phòng IT Server', code: 'ITS - Phòng IT Server' },
+  { id: 6, label: 'QA - Phòng Quản lý Quy trình', code: 'QA - Phòng Quản lý Quy trình' },
 ])
 const positions = ref([
-  { id: 1, label: 'TBP - Trưởng bộ phận', code: 'TBP - Trưởng bộ phận' },
-  { id: 2, label: 'TPHCNS - Trưởng phòng HCNS', code: 'TPHCNS - Trưởng phòng HCNS' },
+  { id: 1, label: 'TP ĐH - Trưởng phòng Điều Hành', code: 'TP ĐH - Trưởng phòng Điều Hành', parentId: 'BOM - Ban điều hành' },
+  { id: 2, label: 'NV ĐH - Nhân viên Điều Hành', code: 'NV ĐH - Nhân viên Điều Hành', parentId: 'BOM - Ban điều hành' },
+  { id: 3, label: 'KTT - Kế toán trưởng', code: 'KTT - Kế toán trưởng', parentId: 'ATC - Phòng Admin, Tài chính' },
+  { id: 4, label: 'NV KT - Nhân viên Kế Toán', code: 'NV KT - Nhân viên Kế Toán', parentId: 'ATC - Phòng Admin, Tài chính' },
+  { id: 5, label: 'TP NS - Trưởng phòng Nhân Sự', code: 'TP NS - Trưởng phòng Nhân Sự', parentId: 'HR- Phòng Đào tạo , Nhân sự' },
+  { id: 6, label: 'NV NS - Nhân viên Nhân Sự', code: 'NV NS - Nhân viên Nhân Sự', parentId: 'HR- Phòng Đào tạo , Nhân sự' },
+  { id: 7, label: 'TP PT - Trưởng phòng Phát Triển Thị Trường', code: 'TP PT - Trưởng phòng Phát Triển Thị Trường', parentId: 'BPPT - Bộ phận Phát triển Thị trường' },
+  { id: 8, label: 'NV PT - Nhân viên Phát Triển Thị Trường', code: 'NV PT - Nhân viên Phát Triển Thị Trường', parentId: 'BPPT - Bộ phận Phát triển Thị trường' },
+  { id: 9, label: 'TP ITS - Trưởng phòng IT Server', code: 'TP ITS - Trưởng phòng IT Server', parentId: 'ITS - Phòng IT Server' },
+  { id: 10, label: 'NV ITS - Nhân viên IT Server', code: 'NV ITS - Nhân viên IT Server', parentId: 'ITS - Phòng IT Server' },
+  { id: 11, label: 'TP QA - Trưởng phòng Quản Lý Quy Trình', code: 'TP QA - Trưởng phòng Quản Lý Quy Trình', parentId: 'QA - Phòng Quản lý Quy trình' },
+  { id: 12, label: 'NV QA - Nhân viên Quản Lý Quy Trình', code: 'NV QA - Nhân viên Quản Lý Quy Trình', parentId: 'QA - Phòng Quản lý Quy trình' },
 ])
-
+const branchs = ref([
+  { id: 1, label: 'HN - Trụ sở chính', code: 'HN - Trụ sở chính' },
+  { id: 1, label: 'HUE - Văn phòng đại diện Huế', code: 'HUE - Văn phòng đại diện Huế' },
+  { id: 1, label: 'TPHCM - Văn phòng đại diện TPHCM', code: 'TPHCM - Văn phòng đại diện TPHCM' },
+  { id: 1, label: 'JAPAN - Văn phòng đại diện Nhật Bản', code: 'JAPAN - Văn phòng đại diện Nhật Bản' },
+])
 const bankNames = ref([
   { id: 1, label: 'Ngân hàng Vietcombank', code: 'Ngân hàng Vietcombank' },
   { id: 2, label: 'Ngân hàng BIDV', code: 'Ngân hàng BIDV' },
@@ -387,9 +414,19 @@ const formSchema = toTypedSchema(
       .string({ required_error: 'Vui lòng nhập số CMND' })
       .min(9, { message: 'Số CMND phải có ít nhất 9 ký tự' })
       .max(12, { message: 'Số CMND không được quá 12 ký tự' }),
-    company: z.string().default('CÔNG TY CỔ PHẦN DEHA VIỆT NAM'),
-    department: z.string().default('phongnhansu'),
-    position: z.string().default('giamdoc'),
+    company: z
+      .string()
+      .refine((val) => !!val, { message: 'Vui lòng chọn công ty' }),
+    department: z
+      .union([z.string(), z.number()])
+      .refine((val) => !!val, {
+        message: 'Vui lòng chọn phòng ban',
+      }),
+    position: z
+      .union([z.string(), z.number()])
+      .refine((val) => !!val, {
+        message: 'Vui lòng chọn vị trí công việc',
+      }),
     bankAccount: z
       .string({ required_error: 'Vui lòng nhập số tài khoản' })
       .min(10, { message: 'Số tài khoản phải có ít nhất 10 ký tự' })
@@ -398,7 +435,7 @@ const formSchema = toTypedSchema(
       .string({ required_error: 'Vui lòng nhập tên tài khoản' })
       .min(2, { message: 'Tên tài khoản phải có ít nhất 2 ký tự' })
       .max(50, { message: 'Tên tài khoản không được quá 50 ký tự' }),
-    bankName: z.string().default('vietcombank'),
+    bankName: z.string().refine((val) => !!val, { message: 'Vui lòng chọn ngân hàng' }),
     taxCode: z
       .string({ required_error: 'Vui lòng nhập mã số thuế' })
       .min(10, { message: 'Mã số thuế phải có ít nhất 10 ký tự' })
@@ -435,15 +472,28 @@ const dateOfIssueValue = computed({
 
 const departmentValue = computed({
   get: () => values.department,
-  set: val => setFieldValue('department', val),
+  set: val => {
+    const found = departments.value.find(d => d.code === val)
+    setFieldValue('department', found?.code || null)
+    setFieldValue('position', '')
+  }
 })
 const positionValue = computed({
   get: () => values.position,
   set: val => setFieldValue('position', val),
 })
+
+const branchValue = computed({
+  get: () => values.company,
+  set: val => setFieldValue('company', val),
+})
 const bankNameValue = computed({
   get: () => values.bankName,
   set: val => setFieldValue('bankName', val),
+})
+const filteredPositions = computed(() => {
+  if (!values.department) return []
+  return positions.value.filter(pos => pos.parentId === values.department)
 })
 
 const getEmployees = async () => {
@@ -468,6 +518,7 @@ const onSubmit = handleSubmit(async (values) => {
       phone: values.phone,
       department: values.department,
       position: values.position,
+      company: values.company,
       personalInfo: {
         idCard: {
           number: values.cmnd,
