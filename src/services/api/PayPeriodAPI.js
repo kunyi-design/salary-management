@@ -13,6 +13,7 @@ class ClassPayPeriod {
         .catch((err) => reject(err.response.data))
     })
   }
+
   async put(url, inputs) {
     return new Promise((resolve, reject) => {
       axios

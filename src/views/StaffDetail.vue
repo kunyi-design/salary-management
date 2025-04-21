@@ -1025,6 +1025,8 @@ const onUpdate = handleSubmit(async (values) => {
 
     const res = await EmployeeAPI.put('/' + route.params.code, inputs)
     setFieldValue('totalIncome', res.salary?.totalSalaryGross || 0)
+    setFieldValue('totalCompanyInsurance', res.insurance.companyInsurance.rate.socialInsurance + res.insurance.companyInsurance.rate.healthInsurance + res.insurance.companyInsurance.rate.unemploymentInsurance)
+    setFieldValue('totalEmployeeInsurance', res.insurance.employeeInsurance.rate.socialInsurance + res.insurance.employeeInsurance.rate.healthInsurance + res.insurance.employeeInsurance.rate.unemploymentInsurance)
     dataTable.value = res.contracts
     toast.success("Cập nhật nhân viên thành công")
   }
@@ -1035,8 +1037,11 @@ const onUpdate = handleSubmit(async (values) => {
 
 const onDelete = async () => {
   try {
-    await EmployeeAPI.delete(route.params.code)
-    router.push('/staff')
+    const inputs = {
+      employeeIds: [route.params.code]
+    }
+    await EmployeeAPI.delete(inputs)
+    router.push('/')
     toast.success('Xóa nhân viên thành công')
   }
   catch (e) {

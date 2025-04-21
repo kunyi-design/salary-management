@@ -1,10 +1,5 @@
 <template>
   <section class="px-4">
-    <div class="flex justify-end mb-10">
-      <Button variant="primary">
-        <Plus />
-      </Button>
-    </div>
     <div class="rounded-sm border">
       <Table>
         <TableHeader>
@@ -15,7 +10,14 @@
             </TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <TableBody v-if="isLoading">
+          <TableRow>
+            <TableCell :colspan="columns.length" class="text-center py-6">
+              <span class="animate-pulse text-gray-500">Đang tải dữ liệu...</span>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+        <TableBody v-else>
           <template v-if="table.getRowModel().rows?.length">
             <template v-for="row in table.getRowModel().rows" :key="row.id">
               <TableRow :data-state="row.getIsSelected() && 'selected'">
@@ -76,6 +78,7 @@ const columnVisibility = ref({})
 const rowSelection = ref({})
 const expanded = ref({})
 const data = ref([])
+const isLoading = ref(false)
 const columns = [
   {
     id: 'stt',
@@ -157,12 +160,15 @@ const table = useVueTable({
 })
 
 const getPayPeriods = async () => {
+  isLoading.value = true
   try {
     const res = await PayPeriodAPI.get()
     data.value = res.data
   }
   catch (e) {
     toast.error(e.message)
+  } finally {
+    isLoading.value = false
   }
 }
 

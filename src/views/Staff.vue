@@ -1,8 +1,8 @@
 <template>
   <section class="px-4">
-    <Accordion type="single" class="w-full border mb-16 px-5 rounded-sm" collapsible :default-value="''">
+    <Accordion type="single" class="w-full border mb-16 px-5 rounded-sm" collapsible v-model="defaultValue">
       <AccordionItem :key="'addStaff'" :value="'addStaff'">
-        <AccordionTrigger class=" cursor-pointer text-blue-500">Thêm nhân viên</AccordionTrigger>
+        <AccordionTrigger class=" cursor-pointer text-blue-500 hover:no-underline">Thêm nhân viên</AccordionTrigger>
         <AccordionContent>
           <div class="">
             <form class="space-y-6" @submit.prevent="onSubmit">
@@ -270,9 +270,12 @@
                   </FormField>
                 </div>
               </div>
-              <div class="flex justify-end">
+              <div class="flex justify-end gap-3">
+                <Button @click="defaultValue = undefined" type="button" variant="outline">
+                  Hủy bỏ
+                </Button>
                 <Button type="submit" variant="primary">
-                  Thêm nhân viên
+                  Tạo mới
                 </Button>
               </div>
             </form>
@@ -280,7 +283,7 @@
         </AccordionContent>
       </AccordionItem>
     </Accordion>
-    <TableListEmployee :data="dataEmployee" />
+    <TableListEmployee :isLoading="isLoading" :data="dataEmployee" @refresh-table="getEmployees" />
   </section>
 </template>
 
@@ -327,7 +330,9 @@ const store = useStore()
 const df = new DateFormatter('en-US', {
   dateStyle: 'long',
 })
+const isLoading = ref(false)
 
+const defaultValue = ref('')
 const dataEmployee = ref([])
 const departments = ref([
   { id: 1, label: 'Phòng nhân sự', code: 'Phòng nhân sự' },
@@ -337,11 +342,8 @@ const departments = ref([
   { id: 5, label: 'Phòng chăm sóc khách hàng', code: 'Phòng chăm sóc khách hàng' },
 ])
 const positions = ref([
-  { id: 1, label: 'Giám đốc', code: 'Giám đốc' },
-  { id: 2, label: 'Phó giám đốc', code: 'Phó giám đốc' },
-  { id: 3, label: 'Trưởng phòng', code: 'Trưởng phòng' },
-  { id: 4, label: 'Nhân viên', code: 'Nhân viên' },
-  { id: 5, label: 'Thực tập sinh', code: 'Thực tập sinh' },
+  { id: 1, label: 'TBP - Trưởng bộ phận thành', code: 'TBP - Trưởng bộ phận thành' },
+  { id: 2, label: 'TPHCNS - Trưởng phòng HCNS', code: 'TPHCNS - Trưởng phòng HCNS' },
 ])
 
 const bankNames = ref([
@@ -445,12 +447,15 @@ const bankNameValue = computed({
 })
 
 const getEmployees = async () => {
+  isLoading.value = true
   try {
     const res = await EmployeeAPI.get('')
     dataEmployee.value = res.data
   }
   catch (e) {
     console.error(e)
+  } finally {
+    isLoading.value = false
   }
 }
 

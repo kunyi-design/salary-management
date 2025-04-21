@@ -1,6 +1,6 @@
 <template>
-  <section class="px-4">
-    <div class="flex gap-2 items-center mb-10">
+  <section class="px-4 grid">
+    <!-- <div class="flex gap-2 items-center mb-10">
       <button type="button"
         class="rounded bg-blue-500 text-white hover:bg-blue-500/90 py-1.5 px-3 text-xs font-semibold cursor-pointer">
         Cập nhật
@@ -21,7 +21,7 @@
         class="rounded bg-red-500 text-white hover:bg-red-500/90 py-1.5 px-3 text-xs font-semibold cursor-pointer">
         Xóa
       </button>
-    </div>
+    </div> -->
     <div class="grid grid-cols-12 gap-5 mb-5">
       <div class="col-span-3">
         <Label class="mb-2">Kỳ trả lương</Label>
@@ -123,12 +123,13 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from "@/components/ui/checkbox";
 import { useStore } from 'vuex';
 import { toast } from 'vue-sonner'
+import TimeSheetAPI from '@/services/api/TimeSheetAPI';
 
 const route = useRoute()
 const store = useStore()
-const kyTraLuong = ref("04/2025 - 05/2025");
-const fromDate = ref("25/04/2025")
-const toDate = ref('25/05/2025')
+const kyTraLuong = ref("");
+const fromDate = ref("")
+const toDate = ref('')
 const survival = ref(2)
 const remainingPermission = ref(3)
 
@@ -274,7 +275,15 @@ const columns = [
     },
   },
 ];
-
+const getTimeSheetDetail = async () => {
+  try {
+    const res = await TimeSheetAPI.get(`/employee?employeeId=${route.params.code}&month=${route.query.month}&year=${route.query.year}`)
+    data.value = res.data
+  }
+  catch (e) {
+    toast
+  }
+}
 const table = computed(() => useVueTable({
   data: data.value,
   columns: dateColumns.value,
@@ -296,10 +305,15 @@ const table = computed(() => useVueTable({
     get expanded() { return expanded.value },
   },
 }))
-onMounted(() => {
+onMounted(async () => {
+  await getTimeSheetDetail()
   store.dispatch('app/setBreadcrumb', {
     parentTitle: 'Bảng chấm công',
     currentTitle: `Bảng chấm công ${route.params.code}`,
   })
+  const [start, end] = route.query.payPeriodmonth.split(' - ')
+  kyTraLuong.value = route.query.payPeriodmonth
+  fromDate.value = start
+  toDate.value = end
 })
 </script>

@@ -21,7 +21,7 @@ const router = createRouter({
     //   ],
     // },
     {
-      path: '/staff',
+      path: '/',
       meta: {
         authRequired: true,
         title: 'Nhân viên',
@@ -29,12 +29,12 @@ const router = createRouter({
       component: Default,
       children: [
         {
-          path: '/staff',
+          path: '/',
           name: 'Staff',
           component: () => import('../views/Staff.vue'),
         },
         {
-          path: '/staff/:code',
+          path: '/:code',
           name: 'StaffDetail',
           component: () => import('../views/StaffDetail.vue'),
         },

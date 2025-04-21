@@ -32,10 +32,10 @@ class ClassEmployee {
         .catch((err) => reject(err.response.data))
     })
   }
-  async delete(code) {
+  async delete(inputs) {
     return new Promise((resolve, reject) => {
       axios
-        .delete(this.apiEndpoint + '/' + code)
+        .post(this.apiEndpoint + '/delete', inputs)
         .then((res) => resolve(res.data))
         .catch((err) => reject(err.response.data))
     })

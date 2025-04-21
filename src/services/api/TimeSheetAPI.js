@@ -21,6 +21,18 @@ class ClassTimeSheet {
         .catch((err) => reject(err.response.data))
     })
   }
+  async import(inputs) {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(this.apiEndpoint + '/import', inputs, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        })
+        .then((res) => resolve(res.data))
+        .catch((err) => reject(err.response.data))
+    })
+  }
 }
 
 export default new ClassTimeSheet()

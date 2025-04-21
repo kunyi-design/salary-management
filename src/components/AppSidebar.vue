@@ -58,7 +58,7 @@ const data = reactive({
       items: [
         {
           title: 'Nhân viên',
-          url: '/staff',
+          url: '/',
         },
       ],
     },

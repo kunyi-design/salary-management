@@ -1,23 +1,50 @@
 <template>
   <section class="px-4 grid">
     <div class="flex justify-end mb-10 gap-3">
-      <Popover>
-        <PopoverTrigger as-child>
-          <Button variant="outline" :class="cn(
-            'w-[280px] justify-start text-left font-normal',
-            !dateOfIssueValue && 'text-muted-foreground',
-          )">
-            <CalendarIcon class="mr-2 h-4 w-4" />
-            {{ dateOfIssueValue ? df.format(dateOfIssueValue.toDate(getLocalTimeZone())) : "Pick a date" }}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent class="w-auto p-0">
-          <Calendar v-model="dateOfIssueValue" initial-focus />
-        </PopoverContent>
-      </Popover>
-      <Button variant="primary" @click="dataSynchronization">
-        <Search />
-      </Button>
+      <div class="flex gap-3">
+        <Select v-model="timeSheetValue">
+          <SelectTrigger>
+            <SelectValue placeholder="Chọn thời gian" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem v-for="item in timeSheets" :key="item.code" :value="item.code">
+                {{ item.label }}
+              </SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        <Button variant="primary" @click="dataSynchronization">
+          <Search />
+        </Button>
+      </div>
+      <div class="flex gap-3">
+
+        <Dialog v-model:open="isOpen">
+          <DialogTrigger as-child>
+            <Button variant="primary">
+              <FileUp />
+            </Button>
+          </DialogTrigger>
+          <DialogContent class="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Nhập bảng chấm công</DialogTitle>
+            </DialogHeader>
+            <label for="fileInput" class="border border-dashed flex justify-center py-10 cursor-pointer rounded-xl">
+              <p v-if="fileName" class="text-center mt-4 text-sm text-gray-600">
+                Đã chọn: <strong>{{ fileName }}</strong>
+              </p>
+              <FileUp v-else class="w-10 h-10 text-gray-400" />
+            </label>
+            <input type="file" class="hidden" id="fileInput" ref="fileInput" @change="handleFileChange" />
+            <DialogFooter>
+              <Button type="button" variant="primary" @click="importExcel">
+                Nhập
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
     <div class="rounded-sm border w-full overflow-hidden mb-3">
       <Table class=" relative">
@@ -30,7 +57,14 @@
             </TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <TableBody v-if="isLoading">
+          <TableRow>
+            <TableCell :colspan="columns.length" class="text-center py-6">
+              <span class="animate-pulse text-gray-500">Đang tải dữ liệu...</span>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+        <TableBody v-else>
           <template v-if="table.getRowModel().rows?.length">
             <template v-for="row in table.getRowModel().rows" :key="row.id">
               <TableRow :data-state="row.getIsSelected() && 'selected'">
@@ -64,12 +98,6 @@
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <!-- <SelectItem value="approve" class="cursor-pointer">
-                Phê duyệt
-              </SelectItem>
-              <SelectItem value="refuse" class="cursor-pointer">
-                Từ chối
-              </SelectItem> -->
               <SelectItem value="refuse" class="cursor-pointer">
                 Xuất bảng công
               </SelectItem>
@@ -82,8 +110,8 @@
           hiện</Button>
       </div>
     </div>
-    <input type="file" ref="fileInput" />
-    <button @click="importExcel">Import</button>
+    <!-- <input type="file" ref="fileInput" />
+    <button @click="importExcel">Import</button> -->
   </section>
 </template>
 
@@ -106,6 +134,15 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
   FlexRender,
   getCoreRowModel,
   getExpandedRowModel,
@@ -124,13 +161,15 @@ import { ArrowUpDown, ChevronDown, Plus, Search } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from "@/components/ui/checkbox";
 import { useStore } from 'vuex';
+import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
-import { CalendarIcon } from 'lucide-vue-next'
+import { CalendarIcon, FileUp } from 'lucide-vue-next'
 import TimeSheetAPI from '@/services/api/TimeSheetAPI'
 import { cn } from '@/lib/utils'
 import PayPeriodAPI from '@/services/api/PayPeriodAPI'
 
 const store = useStore()
+const router = useRouter()
 
 const sorting = ref([])
 const columnFilters = ref([])
@@ -140,6 +179,27 @@ const expanded = ref({})
 const data = ref([])
 const actions = ref(null)
 const fileInput = ref(null)
+const fileName = ref('')
+const timeSheetValue = ref('')
+const isOpen = ref(false)
+const isLoading = ref(false)
+const timeSheets = ref([
+  { id: 1, label: '26/1/2025 - 25/2/2025', code: '26/1/2025 - 25/2/2025' },
+  { id: 2, label: '26/2/2025 - 25/3/2025', code: '26/2/2025 - 25/3/2025' },
+  { id: 3, label: '26/3/2025 - 25/4/2025', code: '26/3/2025 - 25/4/2025' },
+  { id: 4, label: '26/4/2025 - 25/5/2025', code: '26/4/2025 - 25/5/2025' },
+  { id: 5, label: '26/5/2025 - 25/6/2025', code: '26/5/2025 - 25/6/2025' },
+  { id: 6, label: '26/6/2025 - 25/7/2025', code: '26/6/2025 - 25/7/2025' },
+  { id: 7, label: '26/7/2025 - 25/8/2025', code: '26/7/2025 - 25/8/2025' },
+  { id: 8, label: '26/8/2025 - 25/9/2025', code: '26/8/2025 - 25/9/2025' },
+  { id: 9, label: '26/9/2025 - 25/10/2025', code: '26/9/2025 - 25/10/2025' },
+  { id: 10, label: '26/10/2025 - 25/11/2025', code: '26/10/2025 - 25/11/2025' },
+  { id: 11, label: '26/11/2025 - 25/12/2025', code: '26/11/2025 - 25/12/2025' },
+])
+const parseDateFromLabel = (dateStr) => {
+  const [day, month, year] = dateStr.split('/')
+  return new Date(`${year}-${month}-${day}`)
+}
 const dateColumns = computed(() => {
   if (!data.value.length) return columns;
 
@@ -220,8 +280,9 @@ const columns = [
     },
     cell: ({ row }) => {
       const code = row.getValue('employeeId');
+      const { month, year } = extractEndMonthYear(timeSheetValue.value)
       return h('a', {
-        href: `/timesheet/${code}`,
+        href: `/timesheet/${code}?payPeriodmonth=${timeSheetValue.value}&month=${month}&year=${year}`,
         class: 'text-center text-blue-500 block underline hover:text-blue-700',
       }, code);
     },
@@ -301,17 +362,32 @@ const table = computed(() => useVueTable({
     get expanded() { return expanded.value },
   },
 }))
-const dateOfIssueValue = ref(new CalendarDate(now.getFullYear(), now.getMonth() + 1, 1))
+const extractEndMonthYear = (code) => {
+  const [, end] = code.split(' - ') // lấy phần sau dấu " - "
+  const [day, month, year] = end.split('/')
+  return {
+    month: parseInt(month),
+    year: parseInt(year),
+  }
+}
+const handleFileChange = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    fileName.value = file.name
+  }
+}
 const getTimeSheet = async () => {
+  isLoading.value = true
   try {
-    const year = dateOfIssueValue.value.year
-    const month = dateOfIssueValue.value.month
+    const { month, year } = extractEndMonthYear(timeSheetValue.value)
 
     const res = await TimeSheetAPI.get(`/?month=${month}&year=${year}`)
     data.value = res.data
   }
   catch (e) {
     toast.error(e.message)
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -322,12 +398,15 @@ const dataSynchronization = async () => {
 const exportPayPeriod = async () => {
   try {
     const employeeIds = selectedCount.value.map((i) => i.original.employee.employeeId)
+    const { month, year } = extractEndMonthYear(timeSheetValue.value)
     const inputs = {
-      month: dateOfIssueValue.value.month,
-      year: dateOfIssueValue.value.year,
+      month,
+      year,
       employeeIds
     }
-    const res = await PayPeriodAPI.post(inputs)
+    await PayPeriodAPI.post(inputs)
+    toast.success('Xuất bảng chấm công thành công')
+    router.push('/payroll')
   }
   catch (e) {
     toast.error(e.message)
@@ -338,32 +417,37 @@ const importExcel = async () => {
   if (!file) return console.warn("Chưa chọn file!")
 
   const formdata = new FormData();
-  formdata.append("month", "5");
-  formdata.append("year", "2025");
+  const { month, year } = extractEndMonthYear(timeSheetValue.value)
+  formdata.append("month", month);
+  formdata.append("year", year);
   formdata.append("file", file);
 
-  const requestOptions = {
-    method: "POST",
-    headers: {
-      Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZmUwYWJkYzNhZmYzMzNkNTk2MGI1YyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc0NDk4NTkyOCwiZXhwIjoxNzQ1MDcyMzI4fQ.kt8iXug_meLAyVLKANlggOcFpl4_Q-XWyjCVlRfxTt0",
-    },
-    body: formdata,
-  };
-
   try {
-    const response = await fetch("https://api-qlns.onrender.com/api/attendance/import", requestOptions);
-    const result = await response.json();
-    console.log("Kết quả import:", result);
+    await TimeSheetAPI.import(formdata);
+    toast.success("Import file thành công!");
+    isOpen.value = false
+    await getTimeSheet()
+    fileName.value = ''
   } catch (error) {
     console.error("Lỗi import:", error);
   }
 };
-onMounted(() => {
-  getTimeSheet()
+onMounted(async () => {
   store.dispatch('app/setBreadcrumb', {
     parentTitle: 'Lương thưởng',
     currentTitle: 'Bảng chấm công',
   })
+  const today = new Date()
+  const currentPeriod = timeSheets.value.find(item => {
+    const [startStr, endStr] = item.label.split(' - ')
+    const startDate = parseDateFromLabel(startStr)
+    const endDate = parseDateFromLabel(endStr)
+    return today >= startDate && today <= endDate
+  })
 
+  if (currentPeriod) {
+    timeSheetValue.value = currentPeriod.code
+  }
+  await getTimeSheet()
 })
 </script>

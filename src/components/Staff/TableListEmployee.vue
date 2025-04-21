@@ -2,6 +2,7 @@
 import { valueUpdater } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import { useRouter } from 'vue-router'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -28,12 +29,17 @@ import {
   useVueTable,
 } from '@tanstack/vue-table'
 import { ArrowUpDown, ChevronDown } from 'lucide-vue-next'
+import DataTableDropDown from '../ui/DataTableDropDown.vue'
 import { h, ref, watch } from 'vue'
+import { toast } from 'vue-sonner'
+import EmployeeAPI from '@/services/api/EmployeeAPI'
 
+const router = useRouter()
 const props = defineProps({
-  data: { type: Array, default: () => ([]) }
+  data: { type: Array, default: () => ([]) },
+  isLoading: { type: Boolean, default: false },
 })
-
+const emits = defineEmits(['refresh-table'])
 const createCell = (key, label) => {
   return {
     accessorKey: key,
@@ -49,6 +55,23 @@ const createCell = (key, label) => {
 }
 const columns = [
   {
+    id: "select",
+    header: ({ table }) =>
+      h(Checkbox, {
+        modelValue: table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate"),
+        "onUpdate:modelValue": (value) => table.toggleAllPageRowsSelected(!!value),
+        ariaLabel: "Select all",
+      }),
+    cell: ({ row }) =>
+      h(Checkbox, {
+        modelValue: row.getIsSelected(),
+        "onUpdate:modelValue": (value) => row.toggleSelected(!!value),
+        ariaLabel: "Select row",
+      }),
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
     accessorKey: 'employeeId',
     header: ({ column }) => {
       return h(Button, {
@@ -60,7 +83,7 @@ const columns = [
     cell: ({ row }) => {
       const code = row.getValue('employeeId')
       return h('a', {
-        href: `/staff/${code}`,
+        href: `/${code}`,
         class: 'text-center text-blue-500 block underline hover:text-blue-700',
       }, code)
     }
@@ -70,14 +93,56 @@ const columns = [
   createCell('phone', 'Số điện thoại'),
   createCell('department', 'Phòng ban'),
   createCell('position', 'Chức vụ'),
+  {
+    id: 'actions',
+    enableHiding: false,
+    cell: ({ row }) => {
+      const payment = row.original
+      return h('div', { class: 'relative' }, h(DataTableDropDown, {
+        payment,
+        onExpand: row.toggleExpanded,
+        onDelete: () => handleDelete(payment.employeeId),
+        onEdit: () => { router.push(`/${payment.employeeId}`) },
+      }))
+    },
+  },
 ]
 
+const handleDelete = async (employeeId) => {
+  try {
+    const inputs = {
+      employeeIds: [employeeId]
+    }
+    await EmployeeAPI.delete(inputs)
+    toast.success('Xóa nhân viên thông')
+    table.resetRowSelection()
+    emits('refresh-table')
+  }
+  catch (e) {
+    toast.error(e.message)
+  }
+}
 const sorting = ref([])
 const columnFilters = ref([])
 const columnVisibility = ref({})
 const rowSelection = ref({})
 const expanded = ref({})
 
+const deleteAllStaff = async () => {
+  try {
+    const employeeIds = table.getSelectedRowModel().rows.map(row => row.getValue('employeeId'))
+    const inputs = {
+      employeeIds
+    }
+    await EmployeeAPI.delete(inputs)
+    toast.success('Xóa nhân viên thành công')
+    table.resetRowSelection()
+    emits('refresh-table')
+  }
+  catch (e) {
+    toast.error(e.message)
+  }
+}
 const table = useVueTable({
   get data() { return props.data },
   columns,
@@ -102,7 +167,10 @@ const table = useVueTable({
 </script>
 
 <template>
-  <div class="w-full">
+  <Button v-if="table.getSelectedRowModel().rows.length > 0" type="button" variant="destructive"
+    @click="deleteAllStaff">Xóa {{
+      table.getSelectedRowModel().rows.length }} nhân viên</Button>
+  <div class="w-full mt-3">
     <div class="rounded-sm border">
       <Table>
         <TableHeader>
@@ -113,7 +181,14 @@ const table = useVueTable({
             </TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <TableBody v-if="isLoading">
+          <TableRow>
+            <TableCell :colspan="columns.length" class="text-center py-6">
+              <span class="animate-pulse text-gray-500">Đang tải dữ liệu...</span>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+        <TableBody v-else>
           <template v-if="table.getRowModel().rows?.length">
             <template v-for="row in table.getRowModel().rows" :key="row.id">
               <TableRow :data-state="row.getIsSelected() && 'selected'">
