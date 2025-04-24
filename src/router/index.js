@@ -22,61 +22,73 @@ const router = createRouter({
     // },
     {
       path: '/',
-      meta: {
-        authRequired: true,
-        title: 'Nhân viên',
-      },
       component: Default,
       children: [
         {
           path: '/',
           name: 'Staff',
           component: () => import('../views/Staff.vue'),
+          meta: {
+            authRequired: true,
+            title: 'Nhân viên',
+          },
         },
         {
           path: '/:code',
           name: 'StaffDetail',
           component: () => import('../views/StaffDetail.vue'),
+          meta: {
+            authRequired: true,
+            title: 'Chi tiết nhân viên',
+          },
         },
       ],
     },
     {
       path: '/payroll',
-      meta: {
-        authRequired: true,
-        title: 'Bảng lương',
-      },
       component: Default,
       children: [
         {
-          path: '/payroll',
+          path: '',
           name: 'Payroll',
           component: () => import('../views/Payroll.vue'),
+          meta: {
+            authRequired: true,
+            title: 'Bảng lương',
+          },
         },
         {
-          path: '/payroll/:id',
+          path: ':id',
           name: 'PayrollDetail',
           component: () => import('../views/PayrollDetail.vue'),
+          meta: {
+            authRequired: true,
+            title: 'Chi tiết bảng lương',
+          },
         },
       ],
     },
     {
       path: '/timesheet',
-      meta: {
-        authRequired: true,
-        title: 'Bảng chấm công',
-      },
       component: Default,
       children: [
         {
-          path: '/timesheet',
+          path: '',
           name: 'Timesheet',
           component: () => import('../views/Timesheet.vue'),
+          meta: {
+            authRequired: true,
+            title: 'Bảng chấm công',
+          },
         },
         {
-          path: '/timesheet/:code',
+          path: ':code',
           name: 'TimeSheetDetail',
           component: () => import('../views/TimeSheetDetail.vue'),
+          meta: {
+            authRequired: true,
+            title: 'Chi tiết chấm công',
+          },
         },
       ],
     },
@@ -110,6 +122,6 @@ router.beforeEach((to, from, next) => {
   next()
 })
 router.afterEach((to) => {
-  document.title = to.meta.title || 'An Dev'
+  document.title = to.meta.title || 'Trương Anh'
 })
 export default router

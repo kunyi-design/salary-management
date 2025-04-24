@@ -44,11 +44,11 @@ const createCell = (key, label) => {
   return {
     accessorKey: key,
     header: ({ column }) => {
-      return h(Button, {
-        variant: 'ghost',
-        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-        class: "w-full text-gray-700",
-      }, () => [label, h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })])
+      return h('div', {
+        // variant: 'ghost',
+        // onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+        class: "w-full text-center text-gray-700",
+      }, label)
     },
     cell: ({ row }) => h('div', { class: 'text-center' }, row.getValue(key)),
   }
@@ -170,48 +170,45 @@ const table = useVueTable({
   <Button v-if="table.getSelectedRowModel().rows.length > 0" type="button" variant="destructive"
     @click="deleteAllStaff">Xóa {{
       table.getSelectedRowModel().rows.length }} nhân viên</Button>
-  <div class="w-full mt-3">
-    <div class="rounded-sm border">
-      <Table>
-        <TableHeader>
-          <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
-            <TableHead v-for="header in headerGroup.headers" :key="header.id">
-              <FlexRender v-if="!header.isPlaceholder" :render="header.column.columnDef.header"
-                :props="header.getContext()" />
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody v-if="isLoading">
-          <TableRow>
-            <TableCell :colspan="columns.length" class="text-center py-6">
-              <span class="animate-pulse text-gray-500">Đang tải dữ liệu...</span>
-            </TableCell>
-          </TableRow>
-        </TableBody>
-        <TableBody v-else>
-          <template v-if="table.getRowModel().rows?.length">
-            <template v-for="row in table.getRowModel().rows" :key="row.id">
-              <TableRow :data-state="row.getIsSelected() && 'selected'">
-                <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
-                  <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
-                </TableCell>
-              </TableRow>
-              <TableRow v-if="row.getIsExpanded()">
-                <TableCell :colspan="row.getAllCells().length">
-                  {{ JSON.stringify(row.original) }}
-                </TableCell>
-              </TableRow>
-            </template>
+  <div class="rounded-sm border w-full overflow-hidden mt-3">
+    <Table>
+      <TableHeader>
+        <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
+          <TableHead v-for="header in headerGroup.headers" :key="header.id">
+            <FlexRender v-if="!header.isPlaceholder" :render="header.column.columnDef.header"
+              :props="header.getContext()" />
+          </TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody v-if="isLoading">
+        <TableRow>
+          <TableCell :colspan="columns.length" class="text-center py-6">
+            <span class="animate-pulse text-gray-500">Đang tải dữ liệu...</span>
+          </TableCell>
+        </TableRow>
+      </TableBody>
+      <TableBody v-else>
+        <template v-if="table.getRowModel().rows?.length">
+          <template v-for="row in table.getRowModel().rows" :key="row.id">
+            <TableRow :data-state="row.getIsSelected() && 'selected'">
+              <TableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
+                <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+              </TableCell>
+            </TableRow>
+            <TableRow v-if="row.getIsExpanded()">
+              <TableCell :colspan="row.getAllCells().length">
+                {{ JSON.stringify(row.original) }}
+              </TableCell>
+            </TableRow>
           </template>
+        </template>
 
-          <TableRow v-else>
-            <TableCell :colspan="columns.length" class="h-24 text-center">
-              No results.
-            </TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
-    </div>
-
+        <TableRow v-else>
+          <TableCell :colspan="columns.length" class="h-24 text-center">
+            No results.
+          </TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
   </div>
 </template>

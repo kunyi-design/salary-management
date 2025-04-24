@@ -1,5 +1,5 @@
 <template>
-  <section class="px-4">
+  <section class="px-4 grid">
     <Accordion type="single" class="w-full border mb-16 px-5 rounded-sm" collapsible v-model="defaultValue">
       <AccordionItem :key="'addStaff'" :value="'addStaff'">
         <AccordionTrigger class=" cursor-pointer text-blue-500 hover:no-underline">Thêm nhân viên</AccordionTrigger>
@@ -28,9 +28,10 @@
                             <FormControl>
                               <Button variant="outline" :class="cn(
                                 'w-full ps-3 text-start font-normal',
-                                !placeholder && 'text-muted-foreground',
+                                !placeholderDateOfBirth && 'text-muted-foreground',
                               )">
-                                <span>{{ placeholder ? df.format(toDate(placeholder)) : "Chọn ngày sinh" }}</span>
+                                <span>{{ placeholderDateOfBirth ? df.format(toDate(placeholderDateOfBirth)) : `Chọn ngày
+                                  sinh` }}</span>
                                 <CalendarIcon class="ms-auto h-4 w-4 opacity-50" />
                               </Button>
                               <input hidden>
@@ -48,14 +49,14 @@
                                   setFieldValue('dateOfBirth', undefined)
                                 }
                               }" /> -->
-                            <CalendarRoot v-slot="{ date, grid, weekDays }" v-model:placeholder="placeholder"
+                            <CalendarRoot v-slot="{ date, grid, weekDays }" v-model:placeholder="placeholderDateOfBirth"
                               v-bind="forwarded" :class="cn('rounded-md border p-3', props.class)">
                               <CalendarHeader>
                                 <CalendarHeading class="flex w-full items-center justify-between gap-2">
-                                  <Select :default-value="placeholder.month.toString()" @update:model-value="(v) => {
-                                    if (!v || !placeholder) return;
-                                    if (Number(v) === placeholder?.month) return;
-                                    placeholder = placeholder.set({
+                                  <Select :default-value="placeholderDateOfBirth.month.toString()" @update:model-value="(v) => {
+                                    if (!v || !placeholderDateOfBirth) return;
+                                    if (Number(v) === placeholderDateOfBirth?.month) return;
+                                    placeholderDateOfBirth = placeholderDateOfBirth.set({
                                       month: Number(v),
                                     })
                                   }">
@@ -70,10 +71,10 @@
                                     </SelectContent>
                                   </Select>
 
-                                  <Select :default-value="placeholder.year.toString()" @update:model-value="(v) => {
-                                    if (!v || !placeholder) return;
-                                    if (Number(v) === placeholder?.year) return;
-                                    placeholder = placeholder.set({
+                                  <Select :default-value="placeholderDateOfBirth.year.toString()" @update:model-value="(v) => {
+                                    if (!v || !placeholderDateOfBirth) return;
+                                    if (Number(v) === placeholderDateOfBirth?.year) return;
+                                    placeholderDateOfBirth = placeholderDateOfBirth.set({
                                       year: Number(v),
                                     })
                                   }">
@@ -82,7 +83,7 @@
                                     </SelectTrigger>
                                     <SelectContent class="max-h-[200px]">
                                       <SelectItem
-                                        v-for="yearValue in createDecade({ dateObj: date, startIndex: -10, endIndex: 10 })"
+                                        v-for="yearValue in createDecade({ dateObj: date, startIndex: -50, endIndex: 50 })"
                                         :key="yearValue.toString()" :value="yearValue.year.toString()">
                                         {{ yearValue.year }}
                                       </SelectItem>
@@ -108,7 +109,7 @@
                                         <CalendarCellTrigger :day="weekDate" :month="month.value" @click="() => {
                                           const date = weekDate.toDate();
                                           setFieldValue('dateOfBirth', df.format(new Date(date.toISOString())));
-                                          placeholder = weekDate;
+                                          placeholderDateOfBirth = weekDate;
                                         }" />
                                       </CalendarCell>
                                     </CalendarGridRow>
@@ -166,26 +167,84 @@
                             <FormControl>
                               <Button variant="outline" :class="cn(
                                 'w-full ps-3 text-start font-normal',
-                                !dateOfIssueValue && 'text-muted-foreground',
+                                !placeholderDateOfIssue && 'text-muted-foreground',
                               )">
-                                <span>{{ dateOfIssueValue ? df.format(toDate(dateOfIssueValue)) : "Chọn ngày cấp"
-                                }}</span>
+                                <span>{{ placeholderDateOfIssue ? df.format(toDate(placeholderDateOfIssue)) : `Chọn ngày
+                                  cấp` }}</span>
                                 <CalendarIcon class="ms-auto h-4 w-4 opacity-50" />
                               </Button>
                               <input hidden>
                             </FormControl>
                           </PopoverTrigger>
                           <PopoverContent class="w-auto p-0">
-                            <Calendar v-model="dateOfIssueValue" calendar-label="Date of birth" initial-focus
-                              :min-value="new CalendarDate(2024, 1, 1)" :max-value="today(getLocalTimeZone())"
-                              @update:model-value="(v) => {
-                                if (v) {
-                                  setFieldValue('dateOfIssue', v.toString())
-                                }
-                                else {
-                                  setFieldValue('dateOfIssue', undefined)
-                                }
-                              }" />
+                            <CalendarRoot v-slot="{ date, grid, weekDays }" v-model:placeholder="placeholderDateOfIssue"
+                              v-bind="forwarded" :class="cn('rounded-md border p-3', props.class)">
+                              <CalendarHeader>
+                                <CalendarHeading class="flex w-full items-center justify-between gap-2">
+                                  <Select :default-value="placeholderDateOfIssue.month.toString()" @update:model-value="(v) => {
+                                    if (!v || !placeholderDateOfIssue) return;
+                                    if (Number(v) === placeholderDateOfIssue?.month) return;
+                                    placeholderDateOfIssue = placeholderDateOfIssue.set({
+                                      month: Number(v),
+                                    })
+                                  }">
+                                    <SelectTrigger aria-label="Select month" class="w-[60%]">
+                                      <SelectValue placeholder="Select month" />
+                                    </SelectTrigger>
+                                    <SelectContent class="max-h-[200px]">
+                                      <SelectItem v-for="month in createYear({ dateObj: date })" :key="month.toString()"
+                                        :value="month.month.toString()">
+                                        {{ formatter.custom(toDate(month), { month: 'long' }) }}
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+
+                                  <Select :default-value="placeholderDateOfIssue.year.toString()" @update:model-value="(v) => {
+                                    if (!v || !placeholderDateOfIssue) return;
+                                    if (Number(v) === placeholderDateOfIssue?.year) return;
+                                    placeholderDateOfIssue = placeholderDateOfIssue.set({
+                                      year: Number(v),
+                                    })
+                                  }">
+                                    <SelectTrigger aria-label="Select year" class="w-[40%]">
+                                      <SelectValue placeholder="Select year" />
+                                    </SelectTrigger>
+                                    <SelectContent class="max-h-[200px]">
+                                      <SelectItem
+                                        v-for="yearValue in createDecade({ dateObj: date, startIndex: -50, endIndex: 50 })"
+                                        :key="yearValue.toString()" :value="yearValue.year.toString()">
+                                        {{ yearValue.year }}
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </CalendarHeading>
+                              </CalendarHeader>
+
+                              <div class="flex flex-col space-y-4 pt-4 sm:flex-row sm:gap-x-4 sm:gap-y-0">
+                                <CalendarGrid v-for="month in grid" :key="month.value.toString()">
+                                  <CalendarGridHead>
+                                    <CalendarGridRow>
+                                      <CalendarHeadCell v-for="day in weekDays" :key="day">
+                                        {{ day }}
+                                      </CalendarHeadCell>
+                                    </CalendarGridRow>
+                                  </CalendarGridHead>
+                                  <CalendarGridBody class="grid">
+                                    <CalendarGridRow v-for="(weekDates, index) in month.rows" :key="`weekDate-${index}`"
+                                      class="mt-2 w-full">
+                                      <CalendarCell v-for="weekDate in weekDates" :key="weekDate.toString()"
+                                        :date="weekDate">
+                                        <CalendarCellTrigger :day="weekDate" :month="month.value" @click="() => {
+                                          const date = weekDate.toDate();
+                                          setFieldValue('dateOfIssue', df.format(new Date(date.toISOString())));
+                                          placeholderDateOfIssue = weekDate;
+                                        }" />
+                                      </CalendarCell>
+                                    </CalendarGridRow>
+                                  </CalendarGridBody>
+                                </CalendarGrid>
+                              </div>
+                            </CalendarRoot>
                           </PopoverContent>
                         </Popover>
                       </FormControl>
@@ -465,10 +524,7 @@ const formSchema = toTypedSchema(
       .min(2, { message: 'Tên nhân viên phải có ít nhất 2 ký tự' })
       .max(50, { message: 'Tên nhân viên không được quá 50 ký tự' }),
     dateOfBirth: z
-      .string({ required_error: 'Vui lòng chọn ngày sinh' })
-      .refine((val) => !isNaN(Date.parse(val)), {
-        message: 'Ngày sinh không hợp lệ',
-      }),
+      .string({ required_error: 'Vui lòng chọn ngày sinh' }),
     dateOfIssue: z
       .string({ required_error: 'Vui lòng chọn ngày cấp' })
       .refine((val) => !isNaN(Date.parse(val)), {
@@ -540,7 +596,10 @@ const { isFieldDirty, handleSubmit, values, setFieldValue, resetForm } = useForm
 })
 const props = withDefaults(defineProps(), {
   modelValue: undefined,
-  placeholder() {
+  placeholderDateOfBirth() {
+    return today(getLocalTimeZone());
+  },
+  placeholderDateOfIssue() {
     return today(getLocalTimeZone());
   },
   weekdayFormat: 'short',
@@ -553,7 +612,12 @@ const delegatedProps = computed(() => {
   return delegated;
 });
 
-const placeholder = useVModel(props, 'modelValue', emits, {
+const placeholderDateOfBirth = useVModel(props, 'modelValue', emits, {
+  passive: true,
+  defaultValue: today(getLocalTimeZone()),
+});
+
+const placeholderDateOfIssue = useVModel(props, 'modelValue', emits, {
   passive: true,
   defaultValue: today(getLocalTimeZone()),
 });
@@ -566,10 +630,10 @@ const formatter = useDateFormatter('en');
 //   get: () => values.dateOfBirth ? parseDate(values.dateOfBirth) : undefined,
 //   set: val => val,
 // });
-const dateOfIssueValue = computed({
-  get: () => values.dateOfIssue ? parseDate(values.dateOfIssue) : undefined,
-  set: val => val,
-})
+// const dateOfIssueValue = computed({
+//   get: () => values.dateOfIssue ? parseDate(values.dateOfIssue) : undefined,
+//   set: val => val,
+// })
 const departmentValue = computed({
   get: () => values.department,
   set: val => {
