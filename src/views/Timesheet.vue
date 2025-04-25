@@ -363,7 +363,7 @@ const table = computed(() => useVueTable({
   },
 }))
 const extractEndMonthYear = (code) => {
-  const [, end] = code.split(' - ') // lấy phần sau dấu " - "
+  const [_, end] = code.split(' - ')
   const [day, month, year] = end.split('/')
   return {
     month: parseInt(month),
@@ -437,17 +437,38 @@ onMounted(async () => {
     parentTitle: 'Lương thưởng',
     currentTitle: 'Bảng chấm công',
   })
+
   const today = new Date()
+  const todayTimestamp = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  ).getTime()
+
   const currentPeriod = timeSheets.value.find(item => {
     const [startStr, endStr] = item.label.split(' - ')
     const startDate = parseDateFromLabel(startStr)
     const endDate = parseDateFromLabel(endStr)
-    return today >= startDate && today <= endDate
+
+    const startTimestamp = new Date(
+      startDate.getFullYear(),
+      startDate.getMonth(),
+      startDate.getDate()
+    ).getTime()
+
+    const endTimestamp = new Date(
+      endDate.getFullYear(),
+      endDate.getMonth(),
+      endDate.getDate()
+    ).getTime()
+
+    return todayTimestamp >= startTimestamp && todayTimestamp <= endTimestamp
   })
 
   if (currentPeriod) {
     timeSheetValue.value = currentPeriod.code
   }
+
   await getTimeSheet()
 })
 </script>
