@@ -413,9 +413,16 @@
                 <Button @click="defaultValue = undefined" type="button" variant="outline">
                   Hủy bỏ
                 </Button>
-                <Button type="submit" variant="primary">
-                  Tạo mới
-                </Button>
+                <template v-if="isLoadingSubmit">
+                  <Button disabled variant="primary">
+                    <Loader2 class="w-4 h-4 mr-2 animate-spin" />
+                  </Button>
+                </template>
+                <template v-else>
+                  <Button type="submit" variant="primary">
+                    Tạo mới
+                  </Button>
+                </template>
               </div>
             </form>
           </div>
@@ -461,7 +468,7 @@ import { CalendarDate, DateFormatter, getLocalTimeZone, parseDate, today } from 
 import { h } from 'vue'
 import * as z from 'zod'
 import { cn } from '@/lib/utils'
-import { CalendarIcon } from 'lucide-vue-next'
+import { CalendarIcon, Loader2 } from 'lucide-vue-next'
 import EmployeeAPI from '@/services/api/EmployeeAPI';
 import { toast } from 'vue-sonner'
 import { useVModel } from '@vueuse/core'
@@ -471,6 +478,7 @@ const store = useStore()
 const df = new DateFormatter('en-US', {
   dateStyle: 'long',
 })
+const isLoadingSubmit = ref(false)
 const isLoading = ref(false)
 
 const defaultValue = ref('')
@@ -671,6 +679,7 @@ const getEmployees = async () => {
 }
 
 const onSubmit = handleSubmit(async (values) => {
+  isLoadingSubmit.value = true
   try {
     const inputs = {
       fullName: values.fullName,
@@ -703,6 +712,8 @@ const onSubmit = handleSubmit(async (values) => {
   }
   catch (err) {
     toast.error(err.message)
+  } finally {
+    isLoadingSubmit.value = false
   }
 })
 
