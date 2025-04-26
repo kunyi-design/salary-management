@@ -516,7 +516,37 @@ const bankNames = ref([
   { id: 4, label: 'Ngân hàng Agribank', code: 'Ngân hàng Agribank' },
   { id: 5, label: 'Ngân hàng ACB', code: 'Ngân hàng ACB' },
 ])
+const props = withDefaults(defineProps(), {
+  modelValue: undefined,
+  placeholderDateOfBirth() {
+    return today(getLocalTimeZone());
+  },
+  placeholderDateOfIssue() {
+    return today(getLocalTimeZone());
+  },
+  weekdayFormat: 'short',
+});
 
+const emits = defineEmits();
+
+const delegatedProps = computed(() => {
+  const { class: _, placeholder: __, ...delegated } = props;
+  return delegated;
+});
+
+const placeholderDateOfBirth = useVModel(props, 'modelValue', emits, {
+  passive: true,
+  defaultValue: today(getLocalTimeZone()),
+});
+
+const placeholderDateOfIssue = useVModel(props, 'modelValue', emits, {
+  passive: true,
+  defaultValue: today(getLocalTimeZone()),
+});
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+
+const formatter = useDateFormatter('en');
 const formSchema = toTypedSchema(
   z.object({
     fullName: z
@@ -526,10 +556,7 @@ const formSchema = toTypedSchema(
     dateOfBirth: z
       .string({ required_error: 'Vui lòng chọn ngày sinh' }),
     dateOfIssue: z
-      .string({ required_error: 'Vui lòng chọn ngày cấp' })
-      .refine((val) => !isNaN(Date.parse(val)), {
-        message: 'Ngày cấp không hợp lệ',
-      }),
+      .string({ required_error: 'Vui lòng chọn ngày cấp' }),
     placeOfIssue: z
       .string({ required_error: 'Vui lòng nhập nơi cấp' })
       .min(2, { message: 'Nơi cấp phải có ít nhất 2 ký tự' })
@@ -587,44 +614,14 @@ const formSchema = toTypedSchema(
 const { isFieldDirty, handleSubmit, values, setFieldValue, resetForm } = useForm({
   validationSchema: formSchema,
   initialValues: {
-    dateOfBirth: '',
-    dateOfIssue: '',
+    dateOfBirth: today(getLocalTimeZone()).toString(),
+    dateOfIssue: today(getLocalTimeZone()).toString(),
     department: '',
     position: '',
     bankName: ''
   }
 })
-const props = withDefaults(defineProps(), {
-  modelValue: undefined,
-  placeholderDateOfBirth() {
-    return today(getLocalTimeZone());
-  },
-  placeholderDateOfIssue() {
-    return today(getLocalTimeZone());
-  },
-  weekdayFormat: 'short',
-});
 
-const emits = defineEmits();
-
-const delegatedProps = computed(() => {
-  const { class: _, placeholder: __, ...delegated } = props;
-  return delegated;
-});
-
-const placeholderDateOfBirth = useVModel(props, 'modelValue', emits, {
-  passive: true,
-  defaultValue: today(getLocalTimeZone()),
-});
-
-const placeholderDateOfIssue = useVModel(props, 'modelValue', emits, {
-  passive: true,
-  defaultValue: today(getLocalTimeZone()),
-});
-
-const forwarded = useForwardPropsEmits(delegatedProps, emits);
-
-const formatter = useDateFormatter('en');
 
 // const value = computed({
 //   get: () => values.dateOfBirth ? parseDate(values.dateOfBirth) : undefined,
