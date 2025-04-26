@@ -14,12 +14,24 @@
             </SelectGroup>
           </SelectContent>
         </Select>
+        <Dialog v-model:open="isOpenDataSync">
+          <DialogTrigger as-child>
+            <Button type="button" variant="primary">
+              Đồng bộ dữ liệu
+            </Button>
+          </DialogTrigger>
+          <DialogContent class="sm:max-w-[425px]">
+            <div class="h-20 flex items-center justify-center">
+              <span class="text-gray-400">Chức năng đang trong quá trình phát triển</span>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         <Button variant="primary" @click="dataSynchronization">
           <Search />
         </Button>
       </div>
       <div class="flex gap-3">
-
         <Dialog v-model:open="isOpen">
           <DialogTrigger as-child>
             <Button variant="primary">
@@ -182,6 +194,7 @@ const fileInput = ref(null)
 const fileName = ref('')
 const timeSheetValue = ref('')
 const isOpen = ref(false)
+const isOpenDataSync = ref(false)
 const isLoading = ref(false)
 const timeSheets = ref([
   { id: 1, label: '26/1/2025 - 25/2/2025', code: '26/1/2025 - 25/2/2025' },

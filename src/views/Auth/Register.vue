@@ -47,9 +47,14 @@
               <FormMessage />
             </FormItem>
           </FormField>
-          <Button type="submit" class="w-full">
-            Đăng ký
-          </Button>
+          <template v-if="isLoading">
+            <Button disabled>
+              <Loader2 class="w-4 h-4 mr-2 animate-spin" />
+            </Button>
+          </template>
+          <template v-else>
+            <Button type="submit" class="w-full">Đăng ký</Button>
+          </template>
         </form>
         <div class="mt-4 text-center text-sm">
           Đã có tài khoản?
@@ -95,12 +100,15 @@ import * as z from 'zod'
 import { useForm } from 'vee-validate'
 import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
+import { Loader2 } from 'lucide-vue-next'
 import AuthAPI from '@/services/api/AuthAPI'
 
 const roles = ref([
   { id: 1, label: 'Admin', value: 'admin' },
   { id: 2, label: 'HR', value: 'hr' },
+  { id: 3, label: 'Kế toán', value: 'ketoan' },
 ])
+const isLoading = ref(false)
 const router = useRouter()
 const formSchema = toTypedSchema(
   z.object({
@@ -125,6 +133,7 @@ const { isFieldDirty, handleSubmit, values, setFieldValue } = useForm({
 })
 
 const onSubmit = handleSubmit(async (values) => {
+  isLoading.value = true
   try {
     const res = await AuthAPI.post('/register', values)
     toast.success(res.message)
@@ -134,6 +143,8 @@ const onSubmit = handleSubmit(async (values) => {
   }
   catch (err) {
     toast.error(err.message)
+  } finally {
+    isLoading.value = false
   }
 })
 </script>

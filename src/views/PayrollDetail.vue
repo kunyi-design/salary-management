@@ -13,10 +13,7 @@
         class="rounded bg-blue-500 text-white hover:bg-blue-500/90 py-1.5 px-3 text-xs font-semibold cursor-pointer">
         Từ chối
       </button>
-      <button type="button"
-        class="rounded bg-blue-500 text-white hover:bg-blue-500/90 py-1.5 px-3 text-xs font-semibold cursor-pointer">
-        Đồng bộ dữ liệu
-      </button>
+
       <button type="button"
         class="rounded bg-red-500 text-white hover:bg-red-500/90 py-1.5 px-3 text-xs font-semibold cursor-pointer">
         Xóa

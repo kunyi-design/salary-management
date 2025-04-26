@@ -32,7 +32,14 @@
             </FormItem>
           </FormField>
 
-          <Button type="submit" class="w-full">Đăng nhập</Button>
+          <template v-if="isLoading">
+            <Button disabled>
+              <Loader2 class="w-4 h-4 mr-2 animate-spin" />
+            </Button>
+          </template>
+          <template v-else>
+            <Button type="submit" class="w-full">Đăng nhập</Button>
+          </template>
         </form>
 
         <div class="mt-4 text-center text-sm">
@@ -58,9 +65,10 @@ import * as z from 'zod'
 import { toast } from 'vue-sonner'
 import { useRouter } from 'vue-router'
 import AuthAPI from '@/services/api/AuthAPI' // Giả sử bạn đã có API login
+import { Loader2 } from 'lucide-vue-next'
 
 const router = useRouter()
-
+const isLoading = ref(false)
 // Schema validate
 const formSchema = toTypedSchema(z.object({
   email: z.string({ required_error: 'Vui lòng nhập email' })
@@ -75,6 +83,7 @@ const { handleSubmit, isFieldDirty } = useForm({
 })
 
 const onSubmit = handleSubmit(async (values) => {
+  isLoading.value = true
   try {
     const res = await AuthAPI.post('/login', values)
     toast.success('Đăng nhập thành công!')
@@ -82,6 +91,8 @@ const onSubmit = handleSubmit(async (values) => {
     router.push('/')
   } catch (err) {
     toast.error(err.message || 'Đăng nhập thất bại')
+  } finally {
+    isLoading.value = false
   }
 })
 </script>
