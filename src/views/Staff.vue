@@ -415,7 +415,7 @@
                 </Button>
                 <template v-if="isLoadingSubmit">
                   <Button disabled variant="primary">
-                    <Loader2 class="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 class="w-4 h-4 animate-spin" />
                   </Button>
                 </template>
                 <template v-else>
