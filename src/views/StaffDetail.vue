@@ -1023,8 +1023,7 @@ const createRowDatePicker = (key, title) => ({
   cell: ({ row }) => {
     const index = row.index
     const currentValue = dataTable.value[index][key]
-    const parsedDate = currentValue ? parseDate(currentValue.split('T')[0]) : undefined
-
+    const parsedDate = currentValue ? parseDate(currentValue.split('T')[0]) : today(getLocalTimeZone())
     return h(Popover, {}, {
       default: () => [
         h(PopoverTrigger, { class: 'w-full' }, {
@@ -1060,7 +1059,7 @@ const createRowDatePicker = (key, title) => ({
                   default: () => [
                     // Select tháng
                     h(Select, {
-                      defaultValue: parsedDate?.month.toString(),
+                      defaultValue: parsedDate?.month ? parsedDate?.month.toString() : (new Date().getMonth() + 1).toString(),
                       'onUpdate:modelValue': (v) => {
                         if (!v || !parsedDate) return;
                         if (Number(v) === parsedDate.month) return;
@@ -1084,7 +1083,7 @@ const createRowDatePicker = (key, title) => ({
 
                     // Select năm
                     h(Select, {
-                      defaultValue: parsedDate?.year.toString(),
+                      defaultValue: parsedDate?.year ? parsedDate.year.toString() : new Date().getFullYear().toString(),
                       'onUpdate:modelValue': (v) => {
                         if (!v || !parsedDate) return;
                         if (Number(v) === parsedDate.year) return;
@@ -1105,6 +1104,7 @@ const createRowDatePicker = (key, title) => ({
                         })
                       ]
                     })
+
                   ]
                 })
               }),
