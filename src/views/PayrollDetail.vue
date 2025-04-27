@@ -138,7 +138,7 @@ const getPayPeriod = async () => {
     const res = await PayPeriodAPI.get('/' + id)
     namePayPeriod.value = res.data.payPeriod.namePayPeriod
     companyName.value = res.data.payPeriod.company
-    numberOfDays.value = res.data.salaries[0].attendanceSummary.totalDays
+    numberOfDays.value = res.data.salaries[0]?.attendanceSummary?.totalDays || 0
     fromDate.value = res.data.fromDate
     toDate.value = res.data.toDate
     dataTable.value = res.data.salaries

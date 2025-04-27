@@ -92,6 +92,8 @@
                             placeholder = placeholder.set({
                               year: Number(v),
                             })
+                            const date = placeholder.toDate()
+                            setFieldValue('birthDate', df.format(new Date(date.toISOString())));
                           }">
                             <SelectTrigger aria-label="Select year" class="w-[40%]">
                               <SelectValue placeholder="Select year" />
@@ -121,7 +123,7 @@
                               class="mt-2 w-full">
                               <CalendarCell v-for="weekDate in weekDates" :key="weekDate.toString()" :date="weekDate">
                                 <CalendarCellTrigger :day="weekDate" :month="month.value" @click="() => {
-                                  const date = weekDate.toDate(); // chuyển thành Date
+                                  const date = weekDate.toDate();
                                   setFieldValue('birthDate', df.format(new Date(date.toISOString())));
                                   placeholder = weekDate;
                                 }" />
@@ -210,7 +212,7 @@
         <div class="col-span-3">
           <FormField v-slot="{ componentField }" name="company">
             <FormItem>
-              <FormLabel>Công ty</FormLabel>
+              <FormLabel>Chi nhánh</FormLabel>
               <FormControl>
                 <Input type="text" v-bind="componentField" disabled />
               </FormControl>
@@ -534,9 +536,9 @@
                       <FormControl>
                         <Button variant="outline" :class="cn(
                           'w-full ps-3 text-start font-normal',
-                          !dateOfIssueValue && 'text-muted-foreground',
+                          !placeholderDateOfIssue && 'text-muted-foreground',
                         )">
-                          <span>{{ dateOfIssueValue ? df.format(toDate(dateOfIssueValue)) : "Chọn ngày cấp"
+                          <span>{{ placeholderDateOfIssue ? df.format(toDate(placeholderDateOfIssue)) : "Chọn ngày cấp"
                           }}</span>
                           <CalendarIcon class="ms-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -544,17 +546,75 @@
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent class="w-auto p-0">
-                      <Calendar v-model="dateOfIssueValue" calendar-label="Date of birth" initial-focus
-                        :min-value="new CalendarDate(1900, 1, 1)" :max-value="today(getLocalTimeZone())"
-                        @update:model-value="(v) => {
-                          if (v) {
-                            const iso = toDate(v).toISOString()
-                            setFieldValue('dateOfIssue', iso)
-                          }
-                          else {
-                            setFieldValue('dateOfIssue', undefined)
-                          }
-                        }" />
+                      <CalendarRoot v-slot="{ date, grid, weekDays }" v-model:placeholder="placeholderDateOfIssue"
+                        v-bind="forwarded" :class="cn('rounded-md border p-3', props.class)">
+                        <CalendarHeader>
+                          <CalendarHeading class="flex w-full items-center justify-between gap-2">
+                            <Select :default-value="placeholderDateOfIssue.month.toString()" @update:model-value="(v) => {
+                              if (!v || !placeholderDateOfIssue) return;
+                              if (Number(v) === placeholderDateOfIssue?.month) return;
+                              placeholderDateOfIssue = placeholderDateOfIssue.set({
+                                month: Number(v),
+                              })
+                            }">
+                              <SelectTrigger aria-label="Select month" class="w-[60%]">
+                                <SelectValue placeholder="Select month" />
+                              </SelectTrigger>
+                              <SelectContent class="max-h-[200px]">
+                                <SelectItem v-for="month in createYear({ dateObj: date })" :key="month.toString()"
+                                  :value="month.month.toString()">
+                                  {{ formatter.custom(toDate(month), { month: 'long' }) }}
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+
+                            <Select :default-value="placeholderDateOfIssue.year.toString()" @update:model-value="(v) => {
+                              if (!v || !placeholderDateOfIssue) return;
+                              if (Number(v) === placeholderDateOfIssue?.year) return;
+                              placeholderDateOfIssue = placeholderDateOfIssue.set({
+                                year: Number(v),
+                              })
+                              const date = placeholderDateOfIssue.toDate()
+                              setFieldValue('dateOfIssue', df.format(new Date(date.toISOString())));
+                            }">
+                              <SelectTrigger aria-label="Select year" class="w-[40%]">
+                                <SelectValue placeholder="Select year" />
+                              </SelectTrigger>
+                              <SelectContent class="max-h-[200px]">
+                                <SelectItem
+                                  v-for="yearValue in createDecade({ dateObj: date, startIndex: -10, endIndex: 10 })"
+                                  :key="yearValue.toString()" :value="yearValue.year.toString()">
+                                  {{ yearValue.year }}
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </CalendarHeading>
+                        </CalendarHeader>
+
+                        <div class="flex flex-col space-y-4 pt-4 sm:flex-row sm:gap-x-4 sm:gap-y-0">
+                          <CalendarGrid v-for="month in grid" :key="month.value.toString()">
+                            <CalendarGridHead>
+                              <CalendarGridRow>
+                                <CalendarHeadCell v-for="day in weekDays" :key="day">
+                                  {{ day }}
+                                </CalendarHeadCell>
+                              </CalendarGridRow>
+                            </CalendarGridHead>
+                            <CalendarGridBody class="grid">
+                              <CalendarGridRow v-for="(weekDates, index) in month.rows" :key="`weekDate-${index}`"
+                                class="mt-2 w-full">
+                                <CalendarCell v-for="weekDate in weekDates" :key="weekDate.toString()" :date="weekDate">
+                                  <CalendarCellTrigger :day="weekDate" :month="month.value" @click="() => {
+                                    const date = weekDate.toDate();
+                                    setFieldValue('dateOfIssue', df.format(new Date(date.toISOString())));
+                                    placeholderDateOfIssue = weekDate;
+                                  }" />
+                                </CalendarCell>
+                              </CalendarGridRow>
+                            </CalendarGridBody>
+                          </CalendarGrid>
+                        </div>
+                      </CalendarRoot>
                     </PopoverContent>
                   </Popover>
                 </FormControl>
@@ -732,6 +792,9 @@ const props = withDefaults(defineProps(), {
   placeholder() {
     return today(getLocalTimeZone());
   },
+  placeholderDateOfIssue() {
+    return today(getLocalTimeZone());
+  },
   weekdayFormat: 'short',
 });
 
@@ -744,7 +807,12 @@ const delegatedProps = computed(() => {
 
 const placeholder = useVModel(props, 'modelValue', emits, {
   passive: true,
-  defaultValue: data.value.birthDate || today(getLocalTimeZone()),
+  defaultValue: data.value.birthDate,
+});
+
+const placeholderDateOfIssue = useVModel(props, 'modelValue', emits, {
+  passive: true,
+  defaultValue: today(getLocalTimeZone()),
 });
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
@@ -757,15 +825,9 @@ const formSchema = toTypedSchema(
       .min(2, { message: 'Tên nhân viên phải có ít nhất 2 ký tự' })
       .max(50, { message: 'Tên nhân viên không được quá 50 ký tự' }),
     birthDate: z
-      .string({ required_error: 'Vui lòng chọn ngày sinh' })
-      .refine((val) => !isNaN(Date.parse(val)), {
-        message: 'Ngày sinh không hợp lệ',
-      }),
+      .string({ required_error: 'Vui lòng chọn ngày sinh' }),
     dateOfIssue: z
-      .string({ required_error: 'Vui lòng chọn ngày cấp' })
-      .refine((val) => !isNaN(Date.parse(val)), {
-        message: 'Ngày cấp không hợp lệ',
-      }),
+      .string({ required_error: 'Vui lòng chọn ngày cấp' }),
     placeOfIssue: z
       .string({ required_error: 'Vui lòng nhập nơi cấp' })
       .min(2, { message: 'Nơi cấp phải có ít nhất 2 ký tự' })
@@ -872,17 +934,6 @@ const bankNames = ref([
   { id: 4, label: 'Ngân hàng Agribank', code: 'Ngân hàng Agribank' },
   { id: 5, label: 'Ngân hàng ACB', code: 'Ngân hàng ACB' },
 ])
-// const value = computed(() => {
-//   if (!values.birthDate) return undefined
-//   const d = new Date(values.birthDate)
-//   return isNaN(d.getTime()) ? undefined : fromDate(d)
-// })
-
-const dateOfIssueValue = computed(() => {
-  if (!values.dateOfIssue) return undefined
-  const d = new Date(values.dateOfIssue)
-  return isNaN(d.getTime()) ? undefined : fromDate(d)
-})
 
 const departmentValue = computed({
   get: () => values.department,
@@ -906,7 +957,7 @@ const getStaff = async () => {
     const { insurance, employee, salary, contracts } = await EmployeeAPI.get(null, code)
     dataTable.value = contracts
     data.value = employee
-
+    placeholderDateOfIssue.value = parseDate((data.value.personalInfo?.idCard?.issueDate).split('T')[0])
     setFieldValue('employeeId', data.value.employeeId)
     setFieldValue('fullName', data.value.fullName)
     setFieldValue('birthDate', data.value.birthDate)
@@ -960,6 +1011,12 @@ const columnVisibility = ref({})
 const rowSelection = ref({})
 const expanded = ref({})
 
+const formatDate = (weekDate) => {
+  const year = weekDate.year;
+  const month = String(weekDate.month).padStart(2, '0');
+  const day = String(weekDate.day).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 const createRowDatePicker = (key, title) => ({
   accessorKey: key,
   header: () => h('div', { class: 'text-center text-sm font-semibold text-gray-700' }, title),
@@ -967,9 +1024,8 @@ const createRowDatePicker = (key, title) => ({
     const index = row.index
     const currentValue = dataTable.value[index][key]
     const parsedDate = currentValue ? parseDate(currentValue.split('T')[0]) : undefined
-    return h(Popover, {
 
-    }, {
+    return h(Popover, {}, {
       default: () => [
         h(PopoverTrigger, { class: 'w-full' }, {
           default: () => [
@@ -988,21 +1044,113 @@ const createRowDatePicker = (key, title) => ({
           ]
         }),
         h(PopoverContent, { class: 'w-auto p-0' }, {
-          default: () => h(Calendar, {
+          default: () => h(CalendarRoot, {
             modelValue: parsedDate,
             'onUpdate:modelValue': (v) => {
-              dataTable.value[index][key] = v?.toString()
+              if (v) {
+                const date = v.toDate();
+                dataTable.value[index][key] = date.toISOString();
+              }
             },
-            'min-value': new CalendarDate(1900, 1, 1),
-            'max-value': today(getLocalTimeZone()),
-            'calendar-label': 'From Date',
-            'initial-focus': true
+            class: 'rounded-md border p-3'
+          }, {
+            default: ({ date, grid, weekDays }) => [
+              h(CalendarHeader, {}, {
+                default: () => h(CalendarHeading, { class: 'flex w-full items-center justify-between gap-2' }, {
+                  default: () => [
+                    // Select tháng
+                    h(Select, {
+                      defaultValue: parsedDate?.month.toString(),
+                      'onUpdate:modelValue': (v) => {
+                        if (!v || !parsedDate) return;
+                        if (Number(v) === parsedDate.month) return;
+                        const updated = parsedDate.set({ month: Number(v) });
+                        dataTable.value[index][key] = formatDate(updated);
+                      }
+                    }, {
+                      default: () => [
+                        h(SelectTrigger, { class: 'w-[60%]' }, {
+                          default: () => h(SelectValue, { placeholder: "Chọn tháng" })
+                        }),
+                        h(SelectContent, { class: 'max-h-[200px]' }, {
+                          default: () => createYear({ dateObj: date }).map(month =>
+                            h(SelectItem, { value: month.month.toString(), key: month.toString() }, {
+                              default: () => formatter.custom(toDate(month), { month: 'long' })
+                            })
+                          )
+                        })
+                      ]
+                    }),
+
+                    // Select năm
+                    h(Select, {
+                      defaultValue: parsedDate?.year.toString(),
+                      'onUpdate:modelValue': (v) => {
+                        if (!v || !parsedDate) return;
+                        if (Number(v) === parsedDate.year) return;
+                        const updated = parsedDate.set({ year: Number(v) });
+                        dataTable.value[index][key] = formatDate(updated);
+                      }
+                    }, {
+                      default: () => [
+                        h(SelectTrigger, { class: 'w-[40%]' }, {
+                          default: () => h(SelectValue, { placeholder: "Chọn năm" })
+                        }),
+                        h(SelectContent, { class: 'max-h-[200px]' }, {
+                          default: () => createDecade({ dateObj: date, startIndex: -10, endIndex: 10 }).map(yearValue =>
+                            h(SelectItem, { value: yearValue.year.toString(), key: yearValue.toString() }, {
+                              default: () => yearValue.year
+                            })
+                          )
+                        })
+                      ]
+                    })
+                  ]
+                })
+              }),
+
+              // Calendar Grid
+              h('div', { class: 'flex flex-col space-y-4 pt-4 sm:flex-row sm:gap-x-4 sm:gap-y-0' },
+                grid.map(month =>
+                  h(CalendarGrid, { key: month.value.toString() }, {
+                    default: () => [
+                      h(CalendarGridHead, {}, {
+                        default: () => h(CalendarGridRow, {}, {
+                          default: () => weekDays.map(day =>
+                            h(CalendarHeadCell, { key: day }, { default: () => day })
+                          )
+                        })
+                      }),
+                      h(CalendarGridBody, { class: 'grid' }, {
+                        default: () => month.rows.map((weekDates, weekIndex) =>
+                          h(CalendarGridRow, { key: `weekDate-${weekIndex}`, class: 'mt-2 w-full' }, {
+                            default: () => weekDates.map(weekDate =>
+                              h(CalendarCell, { key: weekDate.toString(), date: weekDate }, {
+                                default: () => h(CalendarCellTrigger, {
+                                  day: weekDate,
+                                  month: month.value,
+                                  onClick: () => {
+                                    const formattedDate = formatDate(weekDate);
+                                    dataTable.value[index][key] = formattedDate;
+                                  }
+                                })
+                              })
+                            )
+                          })
+                        )
+                      })
+                    ]
+                  })
+                )
+              )
+            ]
           })
         })
       ]
     })
   }
 })
+
 const columns = [
   {
     id: 'stt',

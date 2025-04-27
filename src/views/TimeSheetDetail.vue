@@ -1,6 +1,6 @@
 <template>
   <section class="px-4 grid">
-    <!-- <div class="flex gap-2 items-center mb-10">
+    <div class="flex gap-2 items-center mb-10">
       <button type="button"
         class="rounded bg-blue-500 text-white hover:bg-blue-500/90 py-1.5 px-3 text-xs font-semibold cursor-pointer">
         Cập nhật
@@ -21,7 +21,7 @@
         class="rounded bg-red-500 text-white hover:bg-red-500/90 py-1.5 px-3 text-xs font-semibold cursor-pointer">
         Xóa
       </button>
-    </div> -->
+    </div>
     <div class="grid grid-cols-12 gap-5 mb-5">
       <div class="col-span-3">
         <Label class="mb-2">Kỳ trả lương</Label>
