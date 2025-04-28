@@ -1,6 +1,11 @@
 <template>
   <section class="px-4">
-    <div class="rounded-sm border">
+    <div class="flex">
+      <Button v-if="table.getSelectedRowModel().rows.length > 0" type="button" variant="destructive"
+        @click="deleteAllPayroll">Xóa {{
+          table.getSelectedRowModel().rows.length }} kỳ lương</Button>
+    </div>
+    <div class="rounded-sm border mt-3">
       <Table>
         <TableHeader>
           <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
@@ -171,7 +176,20 @@ const getPayPeriods = async () => {
     isLoading.value = false
   }
 }
-
+const deleteAllPayroll = async () => {
+  try {
+    const ids = table.getSelectedRowModel().rows.map(row => row.original._id)
+    const inputs = {
+      ids
+    }
+    await PayPeriodAPI.delete(inputs)
+    toast.success('Xóa kỳ lương thành công')
+    await getPayPeriods()
+  }
+  catch (e) {
+    toast.error(e.message)
+  }
+}
 onMounted(() => {
   getPayPeriods()
   store.dispatch('app/setBreadcrumb', {

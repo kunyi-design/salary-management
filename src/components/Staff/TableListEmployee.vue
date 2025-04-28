@@ -167,9 +167,11 @@ const table = useVueTable({
 </script>
 
 <template>
-  <Button v-if="table.getSelectedRowModel().rows.length > 0" type="button" variant="destructive"
-    @click="deleteAllStaff">Xóa {{
-      table.getSelectedRowModel().rows.length }} nhân viên</Button>
+  <div class="flex">
+    <Button v-if="table.getSelectedRowModel().rows.length > 0" type="button" variant="destructive"
+      @click="deleteAllStaff">Xóa {{
+        table.getSelectedRowModel().rows.length }} nhân viên</Button>
+  </div>
   <div class="rounded-sm border w-full overflow-hidden mt-3">
     <Table>
       <TableHeader>
