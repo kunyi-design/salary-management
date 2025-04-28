@@ -117,9 +117,16 @@
           </SelectContent>
         </Select>
         <span>với {{ selectedCount.length }} bản ghi</span>
-        <Button variant="outline" class="ml-5" @click="exportPayPeriod"
-          :disabled="!actions || selectedCount.length === 0">Thực
-          hiện</Button>
+        <template v-if="isLoadingPerform">
+          <Button disabled variant="outline">
+            <Loader2 class="w-4 h-4 animate-spin" />
+          </Button>
+        </template>
+        <template v-else>
+          <Button variant="outline" class="ml-5" @click="exportPayPeriod"
+            :disabled="!actions || selectedCount.length === 0">Thực
+            hiện</Button>
+        </template>
       </div>
     </div>
     <!-- <input type="file" ref="fileInput" />
@@ -175,7 +182,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
-import { CalendarIcon, FileUp } from 'lucide-vue-next'
+import { CalendarIcon, FileUp, Loader2 } from 'lucide-vue-next'
 import TimeSheetAPI from '@/services/api/TimeSheetAPI'
 import { cn } from '@/lib/utils'
 import PayPeriodAPI from '@/services/api/PayPeriodAPI'
@@ -196,6 +203,7 @@ const timeSheetValue = ref('')
 const isOpen = ref(false)
 const isOpenDataSync = ref(false)
 const isLoading = ref(false)
+const isLoadingPerform = ref(false)
 const timeSheets = ref([
   { id: 1, label: '26/1/2025 - 25/2/2025', code: '26/1/2025 - 25/2/2025' },
   { id: 2, label: '26/2/2025 - 25/3/2025', code: '26/2/2025 - 25/3/2025' },
@@ -409,6 +417,7 @@ const dataSynchronization = async () => {
 }
 
 const exportPayPeriod = async () => {
+  isLoadingPerform.value = true
   try {
     const employeeIds = selectedCount.value.map((i) => i.original.employee.employeeId)
     const { month, year } = extractEndMonthYear(timeSheetValue.value)
@@ -423,6 +432,8 @@ const exportPayPeriod = async () => {
   }
   catch (e) {
     toast.error(e.message)
+  } finally {
+    isLoadingPerform.value = false
   }
 }
 const importExcel = async () => {

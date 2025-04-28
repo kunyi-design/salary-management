@@ -2,7 +2,7 @@
   <section class="px-4">
     <div class="flex">
       <template v-if="isLoadingDelete">
-        <Button disabled variant="primary">
+        <Button disabled variant="destructive">
           <Loader2 class="w-4 h-4 animate-spin" />
         </Button>
       </template>
