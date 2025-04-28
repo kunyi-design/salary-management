@@ -185,6 +185,7 @@ const deleteAllPayroll = async () => {
     await PayPeriodAPI.delete(inputs)
     toast.success('Xóa kỳ lương thành công')
     await getPayPeriods()
+    table.resetRowSelection()
   }
   catch (e) {
     toast.error(e.message)
