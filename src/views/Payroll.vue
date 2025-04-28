@@ -1,9 +1,16 @@
 <template>
   <section class="px-4">
     <div class="flex">
-      <Button v-if="table.getSelectedRowModel().rows.length > 0" type="button" variant="destructive"
-        @click="deleteAllPayroll">Xóa {{
-          table.getSelectedRowModel().rows.length }} kỳ lương</Button>
+      <template v-if="isLoadingDelete">
+        <Button disabled variant="primary">
+          <Loader2 class="w-4 h-4 animate-spin" />
+        </Button>
+      </template>
+      <template v-else>
+        <Button v-if="table.getSelectedRowModel().rows.length > 0" type="button" variant="destructive"
+          @click="deleteAllPayroll">Xóa {{
+            table.getSelectedRowModel().rows.length }} kỳ lương</Button>
+      </template>
     </div>
     <div class="rounded-sm border mt-3">
       <Table>
@@ -69,7 +76,7 @@ import {
 } from '@tanstack/vue-table'
 import { valueUpdater } from '@/lib/utils'
 import { h, onMounted, ref, watch } from 'vue'
-import { ArrowUpDown, ChevronDown, Plus } from 'lucide-vue-next'
+import { ArrowUpDown, ChevronDown, Plus, Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from "@/components/ui/checkbox";
 import { useStore } from 'vuex';
@@ -84,6 +91,7 @@ const rowSelection = ref({})
 const expanded = ref({})
 const data = ref([])
 const isLoading = ref(false)
+const isLoadingDelete = ref(false)
 const columns = [
   {
     id: 'stt',
@@ -177,6 +185,7 @@ const getPayPeriods = async () => {
   }
 }
 const deleteAllPayroll = async () => {
+  isLoadingDelete.value = true
   try {
     const ids = table.getSelectedRowModel().rows.map(row => row.original._id)
     const inputs = {
@@ -189,6 +198,8 @@ const deleteAllPayroll = async () => {
   }
   catch (e) {
     toast.error(e.message)
+  } finally {
+    isLoadingDelete.value = false
   }
 }
 onMounted(() => {
