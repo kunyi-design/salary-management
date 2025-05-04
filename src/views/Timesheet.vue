@@ -27,9 +27,16 @@
           </DialogContent>
         </Dialog>
 
-        <Button variant="primary" @click="dataSynchronization">
-          <Search />
-        </Button>
+        <template v-if="isLoading">
+          <Button disabled variant="primary">
+            <Loader2 class="w-4 h-4 animate-spin" />
+          </Button>
+        </template>
+        <template v-else>
+          <Button variant="primary" @click="dataSynchronization">
+            <Search />
+          </Button>
+        </template>
       </div>
       <div class="flex gap-3">
         <Dialog v-model:open="isOpen">
@@ -50,9 +57,16 @@
             </label>
             <input type="file" class="hidden" id="fileInput" ref="fileInput" @change="handleFileChange" />
             <DialogFooter>
-              <Button type="button" variant="primary" @click="importExcel">
-                Nhập
-              </Button>
+              <template v-if="isLoadingImport">
+                <Button disabled variant="primary">
+                  <Loader2 class="w-4 h-4 animate-spin" />
+                </Button>
+              </template>
+              <template v-else>
+                <Button type="button" variant="primary" @click="importExcel">
+                  Nhập
+                </Button>
+              </template>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -204,6 +218,7 @@ const isOpen = ref(false)
 const isOpenDataSync = ref(false)
 const isLoading = ref(false)
 const isLoadingPerform = ref(false)
+const isLoadingImport = ref(false)
 const timeSheets = ref([
   { id: 1, label: '26/1/2025 - 25/2/2025', code: '26/1/2025 - 25/2/2025' },
   { id: 2, label: '26/2/2025 - 25/3/2025', code: '26/2/2025 - 25/3/2025' },
@@ -437,6 +452,7 @@ const exportPayPeriod = async () => {
   }
 }
 const importExcel = async () => {
+  isLoadingImport.value = true
   const file = fileInput.value?.files?.[0]
   if (!file) return console.warn("Chưa chọn file!")
 
@@ -454,6 +470,8 @@ const importExcel = async () => {
     fileName.value = ''
   } catch (error) {
     console.error("Lỗi import:", error);
+  } finally {
+    isLoadingImport.value = false
   }
 };
 onMounted(async () => {

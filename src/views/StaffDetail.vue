@@ -3,11 +3,21 @@
     <div class="flex gap-2">
       <button type="button" @click="onUpdate"
         class="rounded bg-blue-500 text-white hover:bg-blue-500/90 py-1.5 px-3 text-sm font-semibold cursor-pointer">
-        Cập nhật
+        <template v-if="isLoadingUpdate">
+          <Loader2 class="w-4 h-4 animate-spin" />
+        </template>
+        <template v-else>
+          <span>Cập nhật</span>
+        </template>
       </button>
       <button type="button" @click="onDelete"
         class="rounded bg-red-500 text-white hover:bg-red-500/90 py-1.5 px-3 text-sm font-semibold cursor-pointer">
-        Xóa
+        <template v-if="isLoadingDelete">
+          <Loader2 class="w-4 h-4 animate-spin" />
+        </template>
+        <template v-else>
+          <span>Xóa</span>
+        </template>
       </button>
     </div>
     <div class="space-y-6 mt-7 border border-gray-200 p-4 rounded-md">
@@ -776,7 +786,7 @@ import { useVModel } from '@vueuse/core'
 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { CalendarDate, DateFormatter, getLocalTimeZone, parseDate, today, fromDate } from '@internationalized/date'
-import { CalendarIcon, XIcon } from 'lucide-vue-next'
+import { CalendarIcon, XIcon, Loader2 } from 'lucide-vue-next'
 import { CalendarRoot, useDateFormatter, useForwardPropsEmits } from 'reka-ui'
 import { toDate, createDecade, createYear } from 'reka-ui/date'
 const store = useStore()
@@ -784,6 +794,8 @@ const route = useRoute()
 const router = useRouter()
 const data = ref({})
 const currentTab = ref('contract')
+const isLoadingUpdate = ref(false)
+const isLoadingDelete = ref(false)
 const df = new DateFormatter('en-US', {
   dateStyle: 'long',
 })
@@ -1232,6 +1244,7 @@ const addContracts = () => {
   dataTable.value = [...dataTable.value, { contractType: '', fromDate: '', toDate: '' }];
 }
 const onUpdate = handleSubmit(async (values) => {
+  isLoadingUpdate.value = true
   try {
     const validContracts = dataTable.value.filter(item => {
       return item.contractType && item.fromDate && item.toDate
@@ -1299,9 +1312,13 @@ const onUpdate = handleSubmit(async (values) => {
   catch (e) {
     toast.error(e.message)
   }
+  finally {
+    isLoadingUpdate.value = false
+  }
 })
 
 const onDelete = async () => {
+  isLoadingDelete.value = true
   try {
     const inputs = {
       employeeIds: [route.params.code]
@@ -1312,6 +1329,9 @@ const onDelete = async () => {
   }
   catch (e) {
     toast.error(e.message)
+  }
+  finally {
+    isLoadingDelete.value = false
   }
 }
 onMounted(async () => {

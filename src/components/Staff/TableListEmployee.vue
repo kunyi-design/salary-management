@@ -39,6 +39,7 @@ const props = defineProps({
   data: { type: Array, default: () => ([]) },
   isLoading: { type: Boolean, default: false },
 })
+const isLoadingDeleteAll = ref(false)
 const emits = defineEmits(['refresh-table'])
 const createCell = (key, label) => {
   return {
@@ -114,7 +115,7 @@ const handleDelete = async (employeeId) => {
       employeeIds: [employeeId]
     }
     await EmployeeAPI.delete(inputs)
-    toast.success('Xóa nhân viên thông')
+    toast.success('Xóa nhân viên thành công')
     table.resetRowSelection()
     emits('refresh-table')
   }
@@ -129,6 +130,7 @@ const rowSelection = ref({})
 const expanded = ref({})
 
 const deleteAllStaff = async () => {
+  isLoadingDeleteAll.value = true
   try {
     const employeeIds = table.getSelectedRowModel().rows.map(row => row.getValue('employeeId'))
     const inputs = {
@@ -141,6 +143,9 @@ const deleteAllStaff = async () => {
   }
   catch (e) {
     toast.error(e.message)
+  }
+  finally {
+    isLoadingDeleteAll.value = false
   }
 }
 const table = useVueTable({
@@ -169,8 +174,15 @@ const table = useVueTable({
 <template>
   <div class="flex">
     <Button v-if="table.getSelectedRowModel().rows.length > 0" type="button" variant="destructive"
-      @click="deleteAllStaff">Xóa {{
-        table.getSelectedRowModel().rows.length }} nhân viên</Button>
+      @click="deleteAllStaff">
+      <template v-if="isLoadingDeleteAll">
+        <Loader2 class="w-4 h-4 animate-spin" />
+      </template>
+      <template v-else>
+        <span>Xóa {{
+          table.getSelectedRowModel().rows.length }} nhân viên</span>
+      </template>
+    </Button>
   </div>
   <div class="rounded-sm border w-full overflow-hidden mt-3">
     <Table>
