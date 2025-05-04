@@ -28,7 +28,7 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
-import { ArrowUpDown, ChevronDown } from 'lucide-vue-next'
+import { ArrowUpDown, ChevronDown, Loader2 } from 'lucide-vue-next'
 import DataTableDropDown from '../ui/DataTableDropDown.vue'
 import { h, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
